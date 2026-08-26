@@ -21,6 +21,7 @@ y está vinculada a los casos de uso del SDD (ver [`specs/`](../specs/README.md)
 | Personas | Catálogo de usuarios | [CU-PER-001..004](../../specs/domains/persons/use-cases.md) · [config-persons.md](config-persons.md) |
 | Autorización | Roles y 2FA | [CU-AUT-001..004](../../specs/domains/authorization/use-cases.md) · [auth-transition.md](auth-transition.md) |
 | Transición | Cambio de estado / traza | [CU-DT-001..003](../../specs/domains/document-transition/use-cases.md) · [auth-transition.md](auth-transition.md) |
+| Módulos aux. (fe, upload, ws, process, mt, inv, money, tariff, report, mail, homologate, doc-tx) | Servicios/endpoints auxiliares | [módulos.md](modules.md) |
 
 ## Cómo leer este manual
 

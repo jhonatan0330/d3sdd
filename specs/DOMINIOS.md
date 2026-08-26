@@ -18,6 +18,18 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 | **persons** | Módulo de personas/usuarios (`UserController`) | ✅ | ✅ (§12) | ✅ | ✅ ([config-persons.md](../../docs/user-guide/config-persons.md)) | — | ✅ |
 | **authorization** | Perfil/autorización/roles/2FA (`UserController` roles) | ✅ | ✅ (§13) | ✅ | ✅ ([auth-transition.md](../../docs/user-guide/auth-transition.md)) | — | ✅ |
 | **api-external** | API pública `/api/*` (login/get/send/report) | — (transversal) | ✅ (openapi) | ✅ (ApiRest) | — | — | ✅ |
+| **fe** | Facturación electrónica DIAN (`FEController`) | ✅ | ✅ (§17.1) | ✅ | ⏳ | ⏳ | ✅ |
+| **upload** | Subida/servido de archivos (`FileController`) | ✅ | ✅ (§17.1) | ✅ | ⏳ | ⏳ | ✅ |
+| **webservice** | Web services externos (`WebServiceController`) | ✅ | ✅ (§17.1) | ✅ | ⏳ | ⏳ | ✅ |
+| **process-designer** | Diseñador de procesos (`ProcessDesignerController`) | ✅ | ✅ (§17.1) | ✅ | ⏳ | ⏳ | ✅ |
+| **multitenancy** | Tenants / multi-tenant (`d3.multitenancy`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ (INF-NEW-001) | ✅ |
+| **inventory** | Inventario de productos (`d3.inventory`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
+| **money** | Cuentas/movimientos/turnos (`d3.money`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
+| **tariff** | Tarifas/tarifarios (`d3.tariff`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
+| **report** | Reportes Jasper (`d3.report`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
+| **mail** | Correo/plantillas (`d3.mail`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
+| **homologate** | Homologación (`d3.homologate`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
+| **document-transaction** | Log de transacciones (`d3.document_transaction`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ (DOC-NEW-002) | ✅ |
 
 ## Detalle por dominio
 
@@ -42,8 +54,10 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 
 ## Cuenta total de avance
 
-- Dominios con spec completa: **10** (authentication, documents, tasks, accounting, massive,
-  notifications, config-forms, persons, authorization, document-transition).
+- Dominios con spec completa: **22** (authentication, documents, tasks, accounting, massive,
+  notifications, config-forms, persons, authorization, document-transition, fe, upload,
+  webservice, process-designer, multitenancy, inventory, money, tariff, report, mail,
+  homologate, document-transaction).
 - Dominios con contrato en `contract/`: todos documentados (§1–§14).
 - API externa formalizada: ✅ (`openapi.yaml`).
 - Secciones de user-guide: **12** (index, login, navigation, documents, tasks, accounting,
@@ -55,23 +69,23 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 2. Completar esquemas `openapi.yaml` de los DTOs nuevos.
 3. Cubrir en Angular los servicios aún sin spec de front (contabilidad, notificaciones).
 
-## Módulos detectados tras la reorganización (sin spec SDD aún)
+## Módulos detectados tras la reorganización (ya con spec SDD)
 
-La reorganización de paquetes reveló módulos `d3.*` que aún no tienen carpeta de dominio.
-Candidatos a nuevos dominios (ver inventario en ADR-001):
+La reorganización de paquetes reveló módulos `d3.*`. Todos tienen ahora carpeta de dominio
+en `specs/domains/<modulo>/` (ver inventario en ADR-001):
 
-| Módulo | Paquete | Posible dominio |
-|--------|---------|-----------------|
-| Facturación electrónica | `d3.fe` (`FEController`, `fe`) | `fe` |
+| Módulo | Paquete | Dominio |
+|--------|---------|---------|
+| Facturación electrónica | `d3.fe` | `fe` |
 | Multi-tenancy | `d3.multitenancy` | `multitenancy` (ver INF-NEW-001) |
 | Inventario | `d3.inventory` | `inventory` |
 | Dinero/moneda | `d3.money` | `money` |
 | Tarifas | `d3.tariff` | `tariff` |
 | Reportes | `d3.report` | `report` |
 | Correo | `d3.mail` | `mail` |
-| Subida de archivos | `d3.upload` (`FileController`) | `upload` |
+| Subida de archivos | `d3.upload` | `upload` |
 | Diseñador de procesos | `d3.process_designer` | `process-designer` |
 | Web services | `d3.webservice` | `webservice` |
 | Homologación | `d3.homologate` | `homologate` |
 | Log de transacciones | `d3.document_transaction` | `document-transaction` |
-| Utilidades base | `d3.java`, `d3.shared` | (transversal) |
+| Utilidades base | `d3.java`, `d3.shared` | (transversal, sin dominio propio) |

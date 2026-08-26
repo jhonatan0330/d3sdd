@@ -275,3 +275,35 @@ No hay versionado de API formal. Registrar aquí cambios breaking:
 - [ ] Listar códigos de error (`error_code`) estandarizados por dominio.
 - [ ] Documentar DTOs nuevos en `openapi.yaml`: `Voucher*`, `AccountDTO`, `ActividadDTO`,
   `PropiedadDTO`, `FileVO`, `UsuarioDTO`, `RolAccesoDTO`, `PedidoVentaAjusteDTO`.
+
+## 17. Otros módulos (servicios / endpoints auxiliares)
+
+Módulos `d3.*` expuestos por HTTP o de servicios, documentados en `specs/domains/<modulo>/`.
+
+### 17.1 Con endpoint HTTP propio
+
+| Método | Path | Descripción | Auth | Dominio |
+|--------|------|-------------|------|---------|
+| POST | `fe/sign` | Firmar documento (DIAN) | Sí | `fe` |
+| POST | `fe/signWithZip` | Firmar con ZIP | Sí | `fe` |
+| POST | `fe/signNE` | Firmar nota electrónica | Sí | `fe` |
+| POST | `fe/signNEWithZip` | Firmar NE con ZIP | Sí | `fe` |
+| POST | `fe/generateCU` | Generar CU/CUFE | Sí | `fe` |
+| GET  | `/files/{visibility}/{type}/{year}/{month}/{day}/{filename}` | Servir archivo | Sí | `upload` |
+| POST | `/webservice/copy` | Copiar web service | Sí | `webservice` |
+| POST | `/process_designer/copy` | Copiar proceso | Sí | `process-designer` |
+
+### 17.2 Módulos de servicio (sin controlador REST propio)
+
+| Módulo | Paquete | Consumido por |
+|--------|---------|---------------|
+| Multi-tenancy | `d3.multitenancy` | Todos (infra) |
+| Inventario | `d3.inventory` | `documents`, `accounting` |
+| Dinero/Cajas | `d3.money` | `accounting` |
+| Tarifas | `d3.tariff` | `inventory`, cálculo de consumo |
+| Reportes | `d3.report` | `/api/getReport`, servlet |
+| Correo | `d3.mail` | `notifications`, recuperación clave |
+| Homologación | `d3.homologate` | `accounting`, `tariff` |
+| Log de transacciones | `d3.document_transaction` | `documents`, `document-transition` |
+
+> Estos módulos no exponen REST propio hoy; su contrato es interno (Svc/Mapper/DTO).

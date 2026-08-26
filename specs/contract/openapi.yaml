@@ -1250,3 +1250,141 @@ paths:
               schema:
                 type: array
                 items: { type: object }
+
+  /fe/sign:
+    post:
+      tags: [fe]
+      summary: Firmar documento (DIAN)
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Firmado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /fe/signWithZip:
+    post:
+      tags: [fe]
+      summary: Firmar documento desde ZIP
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Firmado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /fe/signNE:
+    post:
+      tags: [fe]
+      summary: Firmar nota electrónica
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Firmado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /fe/signNEWithZip:
+    post:
+      tags: [fe]
+      summary: Firmar nota electrónica desde ZIP
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Firmado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /fe/generateCU:
+    post:
+      tags: [fe]
+      summary: Generar CU/CUFE
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Código único
+          content:
+            application/json:
+              schema: { type: object }
+
+  /files/{visibility}/{type}/{year}/{month}/{day}/{filename}:
+    get:
+      tags: [upload]
+      summary: Servir archivo almacenado
+      security: [bearerAuth]
+      parameters:
+        - { name: visibility, in: path, required: true, schema: { type: string } }
+        - { name: type, in: path, required: true, schema: { type: string } }
+        - { name: year, in: path, required: true, schema: { type: string } }
+        - { name: month, in: path, required: true, schema: { type: string } }
+        - { name: day, in: path, required: true, schema: { type: string } }
+        - { name: filename, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Archivo
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+
+  /webservice/copy:
+    post:
+      tags: [webservice]
+      summary: Copiar definición de web service
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Copiado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /process_designer/copy:
+    post:
+      tags: [process-designer]
+      summary: Copiar proceso
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Copiado
+          content:
+            application/json:
+              schema: { type: object }
