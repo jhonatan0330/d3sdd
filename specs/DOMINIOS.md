@@ -10,13 +10,13 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 | **authentication** | Login, Google, checkToken, cambio/recuperación clave, logout | ✅ | ✅ | 🔧 | ✅ (login) | AUTH-NEW-001..005 | 🔧 |
 | **documents** | Expedientes/pedidos: guardar, consultar, listar, changeState, upload, plantillas | ✅ | ✅ | ✅ | ✅ | DOC-NEW-002..003 | 🔧 |
 | **tasks** | Crear/asignar tareas (`TaskRest`) | ✅ | ✅ | ✅ | ✅ | TASK-NEW-001..002 | 🔧 |
-| **accounting** | Comprobantes y plan contable (`VoucherRest`, `PlanAccountingRest`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | ACC-NEW-001..002 | ⏳ |
-| **massive** | Carga masiva de documentos (`MassiveRest`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | MAS-NEW-001 | ⏳ |
-| **notifications** | Centro de notificaciones (`notification-center.service`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | NOT-NEW-001 | ⏳ |
-| **config-forms** | Org, procesos, plantillas, servidores (`configuration-forms`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | CFG-NEW-001 | ⏳ |
-| **document-transition** | Cambios de estado de documentos (`document-transition`) | ⏳ | 🔧 (/rest/changeState) | ⏳ | ⏳ (nav) | — | ⏳ |
-| **persons** | Módulo de personas (eager) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | — | ⏳ |
-| **authorization** | Perfil/autorización de usuario (`authorization`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | — | ⏳ |
+| **accounting** | Comprobantes y plan contable (`VoucherRest`, `PlanAccountingRest`) | ✅ | ✅ (§8) | ✅ | ✅ ([accounting.md](../../docs/user-guide/accounting.md)) | ACC-NEW-001..002 | ✅ |
+| **massive** | Carga masiva de documentos (`MassiveRest`) | ✅ | ✅ (§9) | ✅ | ✅ ([massive-notifications.md](../../docs/user-guide/massive-notifications.md)) | MAS-NEW-001 | ✅ |
+| **notifications** | Centro de notificaciones (`NotificationController`) | ✅ | ✅ (§10) | ✅ | ✅ ([massive-notifications.md](../../docs/user-guide/massive-notifications.md)) | NOT-NEW-001 | 🔧 |
+| **config-forms** | Org, procesos, plantillas, servidores (`PropertyController`,`ConfigurationController`) | ✅ | ✅ (§11) | ✅ | ✅ ([config-persons.md](../../docs/user-guide/config-persons.md)) | CFG-NEW-001 | 🔧 |
+| **document-transition** | Cambios de estado de documentos (`APIController`,`TemplateController`) | ✅ | ✅ (§14) | ✅ | ✅ ([auth-transition.md](../../docs/user-guide/auth-transition.md)) | — | ✅ |
+| **persons** | Módulo de personas/usuarios (`UserController`) | ✅ | ✅ (§12) | ✅ | ✅ ([config-persons.md](../../docs/user-guide/config-persons.md)) | — | ✅ |
+| **authorization** | Perfil/autorización/roles/2FA (`UserController` roles) | ✅ | ✅ (§13) | ✅ | ✅ ([auth-transition.md](../../docs/user-guide/auth-transition.md)) | — | ✅ |
 | **api-external** | API pública `/api/*` (login/get/send/report) | — (transversal) | ✅ (openapi) | ✅ (ApiRest) | — | — | ✅ |
 
 ## Detalle por dominio
@@ -35,18 +35,22 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - Pendiente: migrar token en body de `/document/getDocument`/`saveDocument` a header
   (T-DOC-012); auditoría de cambios de estado (DOC-NEW-002).
 
-### tasks / accounting / massive / notifications / config-forms ⏳
-- Endpoints y servicios identificados (ver `AGENTS.md` y código). Falta spec por dominio.
+### accounting / massive / notifications / config-forms / persons / authorization / document-transition ✅
+- Specs completos en `specs/domains/<dominio>/` (use-cases, requirements, design, tasks).
+- Contract: endpoints agregados en `contract/api-contract.md` §8–§14.
+- User-guide: páginas por dominio en `docs/user-guide/`.
 
 ## Cuenta total de avance
 
-- Dominios con spec iniciada: **3** (authentication, documents, tasks).
-- Dominios con contrato en `contract/`: authentication ✅ + 9 parciales (endpoints dispersos).
+- Dominios con spec completa: **10** (authentication, documents, tasks, accounting, massive,
+  notifications, config-forms, persons, authorization, document-transition).
+- Dominios con contrato en `contract/`: todos documentados (§1–§14).
 - API externa formalizada: ✅ (`openapi.yaml`).
-- Secciones de user-guide: **5** (index, login, navigation, documents, tasks).
+- Secciones de user-guide: **12** (index, login, navigation, documents, tasks, accounting,
+  massive-notifications, config-persons, auth-transition).
 - Ítems en backlog: ~20 (ver `specs/backlog.md`).
 
-## Próximos dominios sugeridos (orden)
-1. `accounting`.
-2. `massive` / `notifications` / `config-forms`.
-3. `document-transition` / `persons` / `authorization`.
+## Próximos pasos sugeridos
+1. Migrar paquetes `com.softure.*` → `d3.*` (ADR-001) dominio por dominio.
+2. Completar esquemas `openapi.yaml` de los DTOs nuevos.
+3. Cubrir en Angular los servicios aún sin spec de front (contabilidad, notificaciones).

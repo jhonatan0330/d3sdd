@@ -148,7 +148,115 @@ La SPA consume los siguientes endpoints para gestión de tareas personales. Deta
 DTOs: `TaskDTO { user, title, notes, completed, dueDate, priority, order, createdAt }`,
 `TaskRequest { key, user, title, notes, completed, dueDate, priority, order }`.
 
-## 8. Cambios y versionado
+## 8. API de contabilidad (dominio `accounting`)
+
+Comprobantes (vouchers) y plan contable. Detalle en
+[`domains/accounting`](domains/accounting/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| GET  | `acc/voucher/{catalog}` | Listar comprobantes por catálogo | Sí |
+| GET  | `acc/voucher/one/{voucherId}` | Ver comprobante | Sí |
+| POST | `acc/voucher/manual` | Crear comprobante manual | Sí |
+| DELETE | `acc/voucher/manual/{voucherId}` | Eliminar comprobante manual | Sí |
+| POST | `acc/voucher/generate-voucher` | Generar desde documento | Sí |
+| POST | `acc/voucher/document` | Id de comprobante por documento | Sí |
+| POST | `acc/voucher/range-clear-voucher` | Limpiar rango | Sí |
+| POST | `acc/voucher/range-create-voucher` | Crear rango | Sí |
+| GET  | `acc/plan/catalog` | Catálogos | Sí |
+| GET  | `acc/plan/catalog/{id}` | Catálogo | Sí |
+| GET  | `acc/plan/account/{catalog}` | Cuentas (filtro) | Sí |
+| GET  | `acc/plan/account/{catalog}/{id}` | Cuenta | Sí |
+| GET  | `acc/plan/balance/{catalog}` | Saldos | Sí |
+| POST | `api_account/voucher` | API externa comprobante (`x-api-key`) | API key |
+
+DTOs: `Voucher`, `VoucherDTO`, `VoucherPrepareRequest`, `VoucherRangeRequest`,
+`AccountDTO`, `CatalogDTO`, `ResultMapDTO`.
+
+## 9. API de carga masiva (dominio `massive`)
+
+Importación de datos en lote. Detalle en
+[`domains/massive`](domains/massive/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| POST | `massiveload/sincronizeCargaMasivaItem` | Sincronizar ítem (`itemId`) | Sí |
+| POST | `massiveload/sincronizeCargaMasiva` | Ejecutar carga (`fileUrl`,`template`) | Sí |
+| (CRUD) | `massiveload/cargaMasivaItem` | Ítems de carga | Sí |
+| (CRUD) | `massiveload/cargaMasiva` | Maestros de carga | Sí |
+
+## 10. API de notificaciones (dominio `notifications`)
+
+Centro de actividades/transferencia. Detalle en
+[`domains/notifications`](domains/notifications/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| GET  | `notification/getNotifications` | Listar actividades | Sí |
+| POST | `notification/readActivity` | Marcar leída | Sí |
+| POST | `notification/transfer` | Transferir actividad | Sí |
+| POST | `notification/userToTransfer` | Usuarios para transferir | Sí |
+
+DTOs: `ActividadDTO` (`llaveTabla`, `documento`), `UsuarioDTO`.
+
+## 11. API de configuración y formularios (dominio `config-forms`)
+
+Propiedades y export/import de configuración. Detalle en
+[`domains/config-forms`](domains/config-forms/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| GET  | `property/{type}/{field}` | Propiedades por tipo/campo | Sí |
+| GET  | `property/type/{type}/{filterName}` | Valores definidos | Sí |
+| GET  | `property/{key}` | Propiedad por llave | Sí |
+| POST | `property/` | Crear/editar propiedad | Sí |
+| GET  | `configuration/export` | Exportar configuración | Sí |
+| POST | `configuration/module` | Exportar por módulos | Sí |
+| POST | `configuration/import` | Importar configuración | Sí |
+| POST | `configuration/compare` | Comparar configuración | Sí |
+
+DTOs: `PropiedadDTO`, `PropiedadValorDefinidoDTO`, `ExportListRequest`, `FileVO`.
+
+## 12. API de personas/usuarios (dominio `persons`)
+
+Catálogo de usuarios. Detalle en
+[`domains/persons`](domains/persons/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| POST | `user/getUsers` | Listar por filtro/rol | Sí |
+| GET  | `user/{userId}` | Usuario por id | Sí |
+| GET  | `user/document/{documentId}` | Usuario por documento | Sí |
+| GET  | `user/properties/{userId}` | Propiedades asignadas | Sí |
+
+DTOs: `UsuarioDTO`, `UsuarioFilterDTO`.
+
+## 13. API de autorización y roles (dominio `authorization`)
+
+Roles de acceso e identidad 2FA. Detalle en
+[`domains/authorization`](domains/authorization/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| GET  | `user/getRole` | Listar roles | Sí |
+| GET  | `user/roles/{userId}` | Roles de usuario | Sí |
+| POST | `user/cambiarClaveUsuarioAutenticacion` | Cambiar contraseña | Sí |
+| POST | `user/dfa` | Doble factor (2FA) | Sí |
+
+DTOs: `RolAccesoDTO`, `UsuarioAutenticacionDTO`.
+
+## 14. API de transición de documentos (dominio `document-transition`)
+
+Cambio de estado y trazabilidad (complementa §6). Detalle en
+[`domains/document-transition`](domains/document-transition/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| POST | `rest/changeState` | Cambiar estado (`PedidoVentaAjusteDTO`) | Sí |
+| POST | `template/getTrace` | Traza de relaciones | Sí |
+| GET  | `template/getTraceFields/{documentId}/{transaction}` | Campos de traza | Sí |
+
+## 15. Cambios y versionado
 
 No hay versionado de API formal. Registrar aquí cambios breaking:
 
@@ -157,18 +265,13 @@ No hay versionado de API formal. Registrar aquí cambios breaking:
 | 2026-08-26 | Creación del contract SDD (baseline) | No | Todos |
 | 2026-08-26 | Documentación dominio `documents` (endpoints `/rest`,`/document`,`/template`) | No | Documentos |
 | 2026-08-26 | Documentación dominio `tasks` (endpoints `/task/*`) | No | Tareas |
+| 2026-08-26 | Documentación `accounting`,`massive`,`notifications`,`config-forms`,`persons`,`authorization`,`document-transition` | No | Nuevos dominios |
 
-## 7. Cambios y versionado
-
-No hay versionado de API formal. Registrar aquí cambios breaking:
-
-| Fecha | Cambio | Breaking | Afecta |
-|-------|--------|:--------:|--------|
-| 2026-08-26 | Creación del contract SDD (baseline) | No | Todos |
-
-## 8. Pendientes de contrato
+## 16. Pendientes de contrato
 
 - [ ] Definir esquemas completos de `UsuarioAutenticacionDTO` / `OrganizacionDTO`.
 - [ ] Documentar explícitamente el header `non-duplicate` (session) usado en `/rest/guardarDocumento`.
 - [ ] Decidir y documentar política de expiración/refresh de JWT.
 - [ ] Listar códigos de error (`error_code`) estandarizados por dominio.
+- [ ] Documentar DTOs nuevos en `openapi.yaml`: `Voucher*`, `AccountDTO`, `ActividadDTO`,
+  `PropiedadDTO`, `FileVO`, `UsuarioDTO`, `RolAccesoDTO`, `PedidoVentaAjusteDTO`.

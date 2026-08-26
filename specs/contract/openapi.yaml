@@ -989,3 +989,264 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SharedIdResponse'
+
+  /acc/voucher/{catalog}:
+    get:
+      tags: [accounting]
+      summary: Listar comprobantes por catálogo
+      security: [bearerAuth]
+      parameters:
+        - name: catalog
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de comprobantes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /acc/voucher/manual:
+    post:
+      tags: [accounting]
+      summary: Crear comprobante manual
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Comprobante creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /acc/plan/balance/{catalog}:
+    get:
+      tags: [accounting]
+      summary: Saldos del plan contable
+      security: [bearerAuth]
+      parameters:
+        - name: catalog
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Saldos
+          content:
+            application/json:
+              schema: { type: object }
+
+  /massiveload/sincronizeCargaMasivaItem:
+    post:
+      tags: [massive]
+      summary: Sincronizar ítem de carga masiva
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itemId: { type: string }
+      responses:
+        '200':
+          description: Ítem procesado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /massiveload/sincronizeCargaMasiva:
+    post:
+      tags: [massive]
+      summary: Ejecutar carga masiva desde archivo
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fileUrl: { type: string }
+                template: { type: string }
+      responses:
+        '200':
+          description: Carga ejecutada
+          content:
+            application/json:
+              schema: { type: object }
+
+  /notification/getNotifications:
+    get:
+      tags: [notifications]
+      summary: Listar actividades/notificaciones
+      security: [bearerAuth]
+      responses:
+        '200':
+          description: Actividades
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /notification/transfer:
+    post:
+      tags: [notifications]
+      summary: Transferir (reasignar) actividad
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Actividad transferida
+          content:
+            application/json:
+              schema: { type: object }
+
+  /property/{type}/{field}:
+    get:
+      tags: [config-forms]
+      summary: Propiedades por tipo/campo
+      security: [bearerAuth]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema: { type: string }
+        - name: field
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Propiedades
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /configuration/export:
+    get:
+      tags: [config-forms]
+      summary: Exportar configuración
+      security: [bearerAuth]
+      responses:
+        '200':
+          description: Archivo de configuración
+          content:
+            application/json:
+              schema: { type: object }
+
+  /user/getUsers:
+    post:
+      tags: [persons]
+      summary: Listar usuarios por filtro/rol
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /user/document/{documentId}:
+    get:
+      tags: [persons]
+      summary: Usuario por documento
+      security: [bearerAuth]
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Usuario
+          content:
+            application/json:
+              schema: { type: object }
+
+  /user/getRole:
+    get:
+      tags: [authorization]
+      summary: Listar roles de acceso
+      security: [bearerAuth]
+      responses:
+        '200':
+          description: Roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+
+  /user/dfa:
+    post:
+      tags: [authorization]
+      summary: Doble factor de autenticación (2FA)
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: 2FA validado
+
+  /rest/changeState:
+    post:
+      tags: [document-transition]
+      summary: Cambiar estado de documento
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Estado cambiado
+          content:
+            application/json:
+              schema: { type: object }
+
+  /template/getTrace:
+    post:
+      tags: [document-transition]
+      summary: Traza de relaciones del documento
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: Traza
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
