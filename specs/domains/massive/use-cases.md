@@ -1,32 +1,38 @@
 # Casos de uso — Carga Masiva (MAS)
 
-Dominio: `massive`. Contrato: §10.
+Dominio: `massive`. Paquete `d3.massiveload`. Contrato: §9.
 
 | ID | Nombre | Actor | Estado |
 |----|--------|-------|--------|
 | CU-MAS-001 | Sincronizar ítem de carga masiva | Sistema/Scheduler | ✅ |
-| CU-MAS-002 | Ejecutar carga masiva desde archivo | Usuario autenticado | ✅ |
-| CU-MAS-003 | Gestión de ítems de carga | Usuario autenticado | ⏳ |
-| CU-MAS-004 | Gestión de maestros de carga | Usuario autenticado | ⏳ |
+| CU-MAS-002 | Ejecutar carga masiva | Usuario autenticado | ✅ |
+| CU-MAS-003 | Gestionar ítems de carga | Usuario autenticado | ✅ |
+| CU-MAS-004 | Gestionar maestros de carga | Usuario autenticado | ✅ |
+| CU-MAS-005 | Descargar archivo base (plantilla) | Usuario autenticado | 🔧 (endpoint por crear) |
+| CU-MAS-006 | Cargar el archivo | Usuario autenticado | ✅ |
+| CU-MAS-007 | Procesar el archivo | Usuario autenticado | ✅ |
+| CU-MAS-008 | Consultar historial de cargas | Usuario autenticado | ✅ |
 
 ---
 
 ## CU-MAS-001 — Sincronizar ítem
-`POST massiveload/sincronizeCargaMasivaItem` con `itemId` (String) → inicia/procesa un ítem.
+`POST massiveload/sincronizeCargaMasivaItem` (legacy) / orquestado por
+`MassiveLoadOrchestratorService`.
 
 ## CU-MAS-002 — Ejecutar carga masiva
-`POST massiveload/sincronizeCargaMasiva` con `fileUrl` y `template` (Strings) → procesa archivo.
+Flujo orquestado por `MassiveRest` (ver CU-MAS-006..008): `upload` → `validate` → `execute`.
 
 ## CU-MAS-003 / CU-MAS-004
-Controladores `MassiveItemController` (`massiveload/cargaMasivaItem`) y
-`MassiveMasterController` (`massiveload/cargaMasiva`) exponen CRUD de ítems/maestros.
-Detalle pendiente de lectura de código.
+El módulo `d3.massiveload` expone la carga vía `MassiveRest` y delega en
+`MassiveLoadOrchestratorService`, `MassiveCRUDItemService`, `MassiveCRUDMasterService`,
+`MassiveFileParserService`, `MassiveValidationService`, `MassiveDocumentBuilderService`.
+DTOs: `MassiveMasterRequest`, `MassiveMasterDTO`, `MassiveItemDTO`, `MasivaItemRequest`,
+`MassiveMasterFilter`, `MassiveItemFilter`.
+
+> Los controladores `MassiveItemController`/`MassiveMasterController` ya no existen; el
+> único expositor HTTP es `MassiveRest` (`massiveload`).
 
 ---
-
-> Los siguientes 4 casos (CU-MAS-005..008) son el flujo de negocio de carga masiva.
-> Los pasos back/front son **borrador derivado de los endpoints de `d3.massiveload`**;
-> reemplázalos por tus pasos reales.
 
 ## CU-MAS-005 — Descargar archivo base (plantilla)
 
@@ -36,70 +42,74 @@ Detalle pendiente de lectura de código.
 
 ### Pasos — Frontend
 1. El usuario hace clic en "Descargar plantilla".
-2. La SPA descarga el archivo ( `GET` al endpoint de plantilla).
-3. El navegador guarda el archivo base.
+2. La SPA descarga el archivo base.
+3. El navegador guarda la plantilla.
 
 ### Pasos — Backend
-1. Expone el archivo base (plantilla) — **endpoint por confirmar**
-   (probable `GET massiveload/template` o vía `/files`; validar con `MassiveItemController`/`MassiveMasterController`).
+1. **Endpoint por crear** (backlog MAS-NEW-002): entregar la plantilla
+   (p.ej. `GET massiveload/template` o vía `/files`).
 2. Devuelve el archivo (`application/octet-stream`).
 
 ### Contrato
-- Endpoint: `GET massiveload/template` (❑ por confirmar) · Auth: `Authorization`.
+- Endpoint: `GET massiveload/template` (❑ por crear) · Auth: `Authorization`.
 
 ## CU-MAS-006 — Cargar el archivo
 
 - **Actor:** Usuario autenticado
-- **Precondiciones:** el usuario ya tiene el archivo base lleno.
-- **Postcondiciones:** el archivo queda registrado para procesamiento.
+- **Precondiciones:** el usuario tiene el archivo base lleno.
+- **Postcondiciones:** el archivo queda registrado como carga (`loadId`).
 
 ### Pasos — Frontend
 1. El usuario selecciona el archivo y hace clic en "Cargar".
-2. La SPA envía el archivo/referencia al backend (`fileUrl` + `template`).
-3. Muestra confirmación o errores de carga.
+2. La SPA envía el archivo/referencia al backend.
+3. Muestra confirmación y el `loadId` resultante.
 
 ### Pasos — Backend
-1. `MassiveRest.sincronizeCargaMasiva(fileUrl, template)` recibe la carga.
-2. Valida y registra la carga masiva (maestro/ítems).
-3. Responde `SharedIdResponse` (id de la carga).
+1. `MassiveRest.upload` (`POST massiveload/upload`) recibe `MassiveMasterRequest`.
+2. `MassiveFileParserService`/`MassiveCRUDMasterService` registran la carga.
+3. Responde `MassiveMasterRequest` (con `loadId`).
 
 ### Contrato
-- Endpoint: `POST massiveload/sincronizeCargaMasiva` (`fileUrl`, `template`) · Auth: `Authorization`.
+- Endpoint: `POST massiveload/upload` (`MassiveMasterRequest`) · Auth: `Authorization`.
 
 ## CU-MAS-007 — Procesar el archivo
 
 - **Actor:** Usuario autenticado (o scheduler)
-- **Precondiciones:** existe una carga registrada (CU-MAS-006).
-- **Postcondiciones:** los ítems del archivo fueron procesados.
+- **Precondiciones:** existe una carga registrada (CU-MAS-006, con `loadId`).
+- **Postcondiciones:** los ítems del archivo fueron validados y procesados.
 
 ### Pasos — Frontend
 1. El usuario hace clic en "Procesar" sobre la carga.
-2. La SPA invoca el procesamiento enviando el `itemId`.
+2. La SPA invoca validación y luego ejecución por `loadId`.
 3. Muestra estado/resultado del procesamiento.
 
 ### Pasos — Backend
-1. `MassiveRest.sincronizeCargaMasivaItem(itemId)` inicia/procesa el ítem.
-2. Delega a los servicios de carga masiva (`d3.massiveload.application`).
-3. Actualiza estado y responde el resultado.
+1. `MassiveRest.validate` (`POST massiveload/validate/{loadId}`) valida vía
+   `MassiveValidationService`.
+2. `MassiveRest.execute` (`POST massiveload/execute/{loadId}`) procesa vía
+   `MassiveLoadOrchestratorService` / `MassiveDocumentBuilderService`.
+3. Actualiza estado y responde `MassiveMasterRequest`.
 
 ### Contrato
-- Endpoint: `POST massiveload/sincronizeCargaMasivaItem` (`itemId`) · Auth: `Authorization`.
+- Endpoints: `POST massiveload/validate/{loadId}` y `POST massiveload/execute/{loadId}`
+  (`MassiveMasterRequest`) · Auth: `Authorization`.
 
 ## CU-MAS-008 — Consultar historial de cargas
 
 - **Actor:** Usuario autenticado
 - **Precondiciones:** existen cargas previas.
-- **Postcondiciones:** se lista el historial de cargas.
+- **Postcondiciones:** se lista el historial de cargas y sus ítems.
 
 ### Pasos — Frontend
 1. El usuario abre la vista "Historial de cargas".
-2. La SPA consulta la lista de cargas.
-3. Renderiza tabla con estado/fecha/resultado.
+2. La SPA consulta la carga por `loadId`.
+3. Renderiza detalle y tabla de ítems.
 
 ### Pasos — Backend
-1. `MassiveMasterController` (`/massiveload/cargaMasiva`) lista los maestros de carga
-   (historial) — **endpoint de listado por confirmar**.
-2. Filtra por tenant/sesión y responde la lista.
+1. `MassiveRest.getLoad` (`GET massiveload/{loadId}`) devuelve `MassiveMasterRequest`.
+2. `MassiveRest.getItems` (`GET massiveload/{loadId}/items`) devuelve
+   `List<MasivaItemRequest>`.
+3. Filtra por tenant/sesión.
 
 ### Contrato
-- Endpoint: `GET massiveload/cargaMasiva` (❑ por confirmar) · Auth: `Authorization`.
+- Endpoints: `GET massiveload/{loadId}` y `GET massiveload/{loadId}/items` · Auth: `Authorization`.

@@ -1044,46 +1044,92 @@ paths:
             application/json:
               schema: { type: object }
 
-  /massiveload/sincronizeCargaMasivaItem:
+  /massiveload/upload:
     post:
       tags: [massive]
-      summary: Sincronizar ítem de carga masiva
+      summary: Cargar archivo de carga masiva
       security: [bearerAuth]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                itemId: { type: string }
+            schema: { type: object }
       responses:
         '200':
-          description: Ítem procesado
+          description: Carga registrada (loadId)
           content:
             application/json:
               schema: { type: object }
 
-  /massiveload/sincronizeCargaMasiva:
+  /massiveload/validate/{loadId}:
     post:
       tags: [massive]
-      summary: Ejecutar carga masiva desde archivo
+      summary: Validar carga masiva
       security: [bearerAuth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                fileUrl: { type: string }
-                template: { type: string }
+      parameters:
+        - name: loadId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Carga validada
+          content:
+            application/json:
+              schema: { type: object }
+
+  /massiveload/execute/{loadId}:
+    post:
+      tags: [massive]
+      summary: Ejecutar/procesar carga masiva
+      security: [bearerAuth]
+      parameters:
+        - name: loadId
+          in: path
+          required: true
+          schema: { type: string }
       responses:
         '200':
           description: Carga ejecutada
           content:
             application/json:
               schema: { type: object }
+
+  /massiveload/{loadId}:
+    get:
+      tags: [massive]
+      summary: Obtener carga (detalle/historial)
+      security: [bearerAuth]
+      parameters:
+        - name: loadId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Carga
+          content:
+            application/json:
+              schema: { type: object }
+
+  /massiveload/{loadId}/items:
+    get:
+      tags: [massive]
+      summary: Ítems de la carga
+      security: [bearerAuth]
+      parameters:
+        - name: loadId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Ítems
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
 
   /notification/getNotifications:
     get:

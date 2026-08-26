@@ -180,12 +180,12 @@ Importación de datos en lote. Detalle en
 
 | Método | Path | Descripción | Auth |
 |--------|------|-------------|------|
-| POST | `massiveload/sincronizeCargaMasivaItem` | Sincronizar ítem (`itemId`) | Sí |
-| POST | `massiveload/sincronizeCargaMasiva` | Ejecutar carga (`fileUrl`,`template`) | Sí |
-| (CRUD) | `massiveload/cargaMasivaItem` | Ítems de carga | Sí |
-| (CRUD) | `massiveload/cargaMasiva` | Maestros de carga | Sí |
-| GET  | `massiveload/template` | ❑ Descargar plantilla base (CU-MAS-005) | Sí |
-| GET  | `massiveload/cargaMasiva` (list) | ❑ Historial de cargas (CU-MAS-008) | Sí |
+| POST | `massiveload/upload` | Cargar archivo (`MassiveMasterRequest`) | Sí |
+| POST | `massiveload/validate/{loadId}` | Validar carga | Sí |
+| POST | `massiveload/execute/{loadId}` | Ejecutar/procesar carga | Sí |
+| GET  | `massiveload/{loadId}` | Obtener carga (detalle) | Sí |
+| GET  | `massiveload/{loadId}/items` | Ítems de la carga | Sí |
+| GET  | `massiveload/template` | ❑ Descargar plantilla base (CU-MAS-005, por crear) | Sí |
 
 ## 10. API de notificaciones (dominio `notifications`)
 
