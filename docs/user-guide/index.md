@@ -13,7 +13,7 @@ y está vinculada a los casos de uso del SDD (ver [`specs/`](../specs/README.md)
 | Ingreso | Login de usuario, Google, recuperación | [CU-AUTH-001/002/005](../specs/domains/authentication/use-cases.md) |
 | Navegación | Menú lateral y módulos | — |
 | Documentos | Crear/consultar/expedir expedientes | [CU-DOC-001..010](../../specs/domains/documents/use-cases.md) |
-| Tareas | Gestión de tareas | (pendiente de spec) |
+| Tareas | Gestión de tareas | [CU-TASK-001..005](../../specs/domains/tasks/use-cases.md) |
 | Contabilidad | Comprobantes / plan contable | (pendiente de spec) |
 | Carga masiva | Carga de documentos en lote | (pendiente de spec) |
 | Notificaciones | Centro de notificaciones | (pendiente de spec) |

@@ -9,7 +9,7 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 |---------|-------------|:---------:|:--------:|:-----:|:----------:|---------|:-------------:|
 | **authentication** | Login, Google, checkToken, cambio/recuperación clave, logout | ✅ | ✅ | 🔧 | ✅ (login) | AUTH-NEW-001..005 | 🔧 |
 | **documents** | Expedientes/pedidos: guardar, consultar, listar, changeState, upload, plantillas | ✅ | ✅ | ✅ | ✅ | DOC-NEW-002..003 | 🔧 |
-| **tasks** | Crear/asignar tareas (`TaskRest`) | ⏳ | 🔧 (endpoint /task) | ⏳ | ⏳ (nav) | TASK-NEW-001..002 | ⏳ |
+| **tasks** | Crear/asignar tareas (`TaskRest`) | ✅ | ✅ | ✅ | ✅ | TASK-NEW-001..002 | 🔧 |
 | **accounting** | Comprobantes y plan contable (`VoucherRest`, `PlanAccountingRest`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | ACC-NEW-001..002 | ⏳ |
 | **massive** | Carga masiva de documentos (`MassiveRest`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | MAS-NEW-001 | ⏳ |
 | **notifications** | Centro de notificaciones (`notification-center.service`) | ⏳ | 🔧 | ⏳ | ⏳ (nav) | NOT-NEW-001 | ⏳ |
@@ -40,13 +40,13 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 
 ## Cuenta total de avance
 
-- Dominios con spec iniciada: **2** (authentication, documents).
+- Dominios con spec iniciada: **3** (authentication, documents, tasks).
 - Dominios con contrato en `contract/`: authentication ✅ + 9 parciales (endpoints dispersos).
 - API externa formalizada: ✅ (`openapi.yaml`).
-- Secciones de user-guide: **4** (index, login, navigation, documents).
+- Secciones de user-guide: **5** (index, login, navigation, documents, tasks).
 - Ítems en backlog: ~20 (ver `specs/backlog.md`).
 
 ## Próximos dominios sugeridos (orden)
-1. `tasks`.
-2. `accounting`.
-3. `massive` / `notifications` / `config-forms`.
+1. `accounting`.
+2. `massive` / `notifications` / `config-forms`.
+3. `document-transition` / `persons` / `authorization`.

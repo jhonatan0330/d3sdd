@@ -132,7 +132,23 @@ endpoints para el ciclo de vida de expedientes. Detalle completo en
 > Endpoints legacy `/document/getDocument` y `/document/saveDocument` reciben el token en el
 > body; pendiente migrar a header (ver `domains/documents/tasks.md` T-DOC-012).
 
-## 7. Cambios y versionado
+## 7. API de tareas (dominio `tasks`)
+
+La SPA consume los siguientes endpoints para gestión de tareas personales. Detalle en
+[`domains/tasks`](domains/tasks/use-cases.md).
+
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| GET  | `/task/` | Listar tareas del usuario | Sí |
+| GET  | `/task/{id}?id={key}` | Ver tarea por id (id en query param) | Sí |
+| POST | `/task/create` | Crear tarea (`TaskRequest`) | Sí |
+| POST | `/task/update` | Actualizar tarea (`TaskRequest` con `key`) | Sí |
+| POST | `/task/delete/{id}` | Eliminar tarea | Sí |
+
+DTOs: `TaskDTO { user, title, notes, completed, dueDate, priority, order, createdAt }`,
+`TaskRequest { key, user, title, notes, completed, dueDate, priority, order }`.
+
+## 8. Cambios y versionado
 
 No hay versionado de API formal. Registrar aquí cambios breaking:
 
@@ -140,6 +156,7 @@ No hay versionado de API formal. Registrar aquí cambios breaking:
 |-------|--------|:--------:|--------|
 | 2026-08-26 | Creación del contract SDD (baseline) | No | Todos |
 | 2026-08-26 | Documentación dominio `documents` (endpoints `/rest`,`/document`,`/template`) | No | Documentos |
+| 2026-08-26 | Documentación dominio `tasks` (endpoints `/task/*`) | No | Tareas |
 
 ## 7. Cambios y versionado
 

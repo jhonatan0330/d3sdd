@@ -290,6 +290,57 @@ components:
         securityToken:
           type: string
 
+    TaskDTO:
+      type: object
+      description: Tarea (com.task.task.domain)
+      additionalProperties: true
+      properties:
+        key:
+          type: string
+        user:
+          type: string
+        title:
+          type: string
+        notes:
+          type: string
+        completed:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+        priority:
+          type: integer
+        order:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    TaskRequest:
+      type: object
+      description: Solicitud de creación/actualización de tarea
+      additionalProperties: true
+      properties:
+        key:
+          type: string
+        user:
+          type: string
+        title:
+          type: string
+        notes:
+          type: string
+        completed:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+        priority:
+          type: integer
+        order:
+          type: integer
+
   responses:
     Unauthorized:
       description: Token inválido, expirado o sesión cerrada
@@ -842,3 +893,99 @@ paths:
                 items:
                   type: object
                   additionalProperties: true
+
+  /task/:
+    get:
+      tags: [tasks]
+      summary: Listar tareas del usuario
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de tareas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskDTO'
+
+  /task/{id}:
+    get:
+      tags: [tasks]
+      summary: Ver tarea por id (id en query param)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tarea
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDTO'
+
+  /task/create:
+    post:
+      tags: [tasks]
+      summary: Crear tarea
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+      responses:
+        '200':
+          description: Tarea creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /task/update:
+    post:
+      tags: [tasks]
+      summary: Actualizar tarea
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+      responses:
+        '200':
+          description: Tarea actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /task/delete/{id}:
+    post:
+      tags: [tasks]
+      summary: Eliminar tarea
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tarea eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
