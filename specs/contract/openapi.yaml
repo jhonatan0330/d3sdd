@@ -1,0 +1,595 @@
+openapi: 3.0.3
+info:
+  title: D3 API Contract (SDD)
+  description: >
+    Contrato formal compartido entre d3_front (Angular) y d3brain (Spring Boot).
+    Fuente de verdad: specs/contract/api-contract.md.
+    Base URL resuelta en runtime por el cliente (ver conf.xml / location.origin).
+  version: "2.0.3"
+  contact:
+    name: D3
+
+servers:
+  - url: https://{host}/api
+    description: API externa (requiere x-api-key)
+    variables:
+      host:
+        default: backend
+  - url: https://{host}/main
+    description: API interna SPA (auth/login)
+    variables:
+      host:
+        default: backend
+
+tags:
+  - name: auth-internal
+    description: Autenticación de la SPA (main)
+  - name: api-external
+    description: API pública /api
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token de sesión (opaco hoy, JWT HS256 en migración). También aceptado en campo securityToken del body.
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key obligatoria en todos los endpoints /api/*
+
+  schemas:
+    SharedIdResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Llave/token de sesión o id de entidad
+        code:
+          type: string
+        state:
+          type: string
+        comment:
+          type: string
+        messages:
+          type: array
+          items:
+            type: object
+            description: DocumentMessage (ver dominio documentos)
+
+    FieldRequest:
+      type: object
+      properties:
+        field:
+          type: string
+        value:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductRequest'
+        parentDocument:
+          $ref: '#/components/schemas/DocumentRequest'
+
+    ProductRequest:
+      type: object
+      description: Definir campos en openapi (pendiente de inspección)
+      properties:
+        product:
+          type: string
+      additionalProperties: true
+
+    DocumentRequest:
+      type: object
+      properties:
+        template:
+          type: string
+        id:
+          type: string
+        code:
+          type: string
+        active:
+          type: string
+        stateId:
+          type: string
+        stateName:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldRequest'
+
+    DocumentFilterRequest:
+      type: object
+      properties:
+        template:
+          type: string
+        id:
+          type: string
+        code:
+          type: string
+        filterText:
+          type: string
+        states:
+          type: array
+          items:
+            type: string
+        active:
+          type: string
+        page:
+          type: integer
+        size:
+          type: integer
+        creationDateMin:
+          type: string
+          format: date-time
+        creationDateMax:
+          type: string
+          format: date-time
+        dateMin:
+          type: string
+          format: date-time
+        dateMax:
+          type: string
+          format: date-time
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldRequest'
+
+    DocumentResponse:
+      type: object
+      properties:
+        template:
+          type: string
+        id:
+          type: string
+        code:
+          type: string
+        active:
+          type: string
+        stateId:
+          type: string
+        stateName:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldResponse'
+        fullValue:
+          type: number
+        pendingValue:
+          type: number
+
+    FieldResponse:
+      type: object
+      description: Definir campos en openapi (pendiente de inspección)
+      additionalProperties: true
+
+    ReportRequest:
+      type: object
+      properties:
+        template:
+          type: string
+        code:
+          type: string
+        documentId:
+          type: string
+        parameters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportParameterRequest'
+
+    ReportParameterRequest:
+      type: object
+      description: Definir campos en openapi (pendiente de inspección)
+      additionalProperties: true
+
+    DataFieldRequest:
+      type: object
+      properties:
+        template:
+          type: string
+        code:
+          type: string
+        preconditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldRequest'
+
+    DataFieldResponse:
+      type: object
+      description: Definir campos en openapi (pendiente de inspección)
+      additionalProperties: true
+
+    LoginRequest:
+      type: object
+      properties:
+        user:
+          type: string
+        password:
+          type: string
+
+    GoogleAuthRequest:
+      type: object
+      properties:
+        idToken:
+          type: string
+          description: id_token de Google
+        urlServer:
+          type: string
+
+    ApiError:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        error_code:
+          type: string
+        message:
+          type: string
+        detail:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Token inválido, expirado o sesión cerrada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    BadRequest:
+      description: Error de validación / regla de negocio
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+
+paths:
+  /login:
+    post:
+      tags: [api-external]
+      summary: Login de API (user/password)
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Sesión creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /get:
+    post:
+      tags: [api-external]
+      summary: Listar documentos por filtro
+      security:
+        - apiKeyAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentFilterRequest'
+      responses:
+        '200':
+          description: Lista de documentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /send:
+    post:
+      tags: [api-external]
+      summary: Crear o actualizar documento
+      security:
+        - apiKeyAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+      responses:
+        '200':
+          description: Resultado de la operación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /getReport:
+    post:
+      tags: [api-external]
+      summary: Generar reporte
+      security:
+        - apiKeyAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+      responses:
+        '200':
+          description: Reporte generado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /getWithLogin:
+    post:
+      tags: [api-external]
+      summary: Login implícito + obtener documentos
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  $ref: '#/components/schemas/LoginRequest'
+                document:
+                  $ref: '#/components/schemas/DocumentFilterRequest'
+      responses:
+        '200':
+          description: Lista de documentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentResponse'
+
+  /getDataFieldWithLogin:
+    post:
+      tags: [api-external]
+      summary: Login implícito + datos de campo
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  $ref: '#/components/schemas/LoginRequest'
+                field:
+                  $ref: '#/components/schemas/DataFieldRequest'
+      responses:
+        '200':
+          description: Datos de campo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataFieldResponse'
+
+  /sendWithLogin:
+    post:
+      tags: [api-external]
+      summary: Login implícito + enviar documento
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  $ref: '#/components/schemas/LoginRequest'
+                document:
+                  $ref: '#/components/schemas/DocumentRequest'
+      responses:
+        '200':
+          description: Resultado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /ok:
+    get:
+      tags: [api-external]
+      summary: Healthcheck autenticado por API key
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+
+  /ping:
+    get:
+      tags: [api-external]
+      summary: Healthcheck público
+      responses:
+        '200':
+          description: PING
+
+  /autenticarUsuarioAutenticacion:
+    post:
+      tags: [auth-internal]
+      summary: Login de la SPA (usuario/clave)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sesion:
+                  type: string
+                  description: usuario
+                clave:
+                  type: string
+                  description: clave
+                claveAnterior:
+                  type: string
+                  description: fecha de compilación (control de versión cliente)
+                securityToken:
+                  type: string
+                usuario:
+                  type: string
+                  description: llaveTabla (re-login con token)
+      responses:
+        '200':
+          description: Autenticación exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  usuarioDTO:
+                    type: object
+                    additionalProperties: true
+                  organizacion:
+                    type: object
+                    additionalProperties: true
+                  mensaje:
+                    type: string
+                  fechaMaxima:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /googleAuthenticate:
+    post:
+      tags: [auth-internal]
+      summary: Login con Google Sign-In
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthRequest'
+      responses:
+        '200':
+          description: Autenticación exitosa (mismo esquema que login normal)
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /checkToken:
+    post:
+      tags: [auth-internal]
+      summary: Validar token de sesión actual
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                securityToken:
+                  type: string
+                claveAnterior:
+                  type: string
+      responses:
+        '200':
+          description: Token válido, devuelve perfil
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /cambiarClave:
+    post:
+      tags: [auth-internal]
+      summary: Cambiar clave (propia u otro usuario)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Clave actualizada
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /solicitarNuevaClave:
+    post:
+      tags: [auth-internal]
+      summary: Recuperar / solicitar nueva clave
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                usuarioDTO:
+                  type: object
+                  properties:
+                    identificacion:
+                      type: string
+                    correo:
+                      type: string
+      responses:
+        '200':
+          description: Solicitud procesada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /obtenerPrincipalOrganizacion:
+    get:
+      tags: [auth-internal]
+      summary: Obtener organización principal (carousel, módulos)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Organización
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
