@@ -40,6 +40,8 @@ carpeta de dominio siguiendo el proceso de `README.md`. Cada ítem, al activarse
 
 - [ ] **MAS-NEW-001** 🟡 Carga masiva de documentos con validación y reporte de errores
   (`MassiveRest` — spec).
+- [ ] **MAS-NEW-002** 🔴 Ajustar carga masiva en el back y crear la interfaz en el front.
+  Falta documentarlo y crear los casos de uso primero (ver `domains/massive/`).
 
 ## Notifications
 
@@ -50,11 +52,24 @@ carpeta de dominio siguiendo el proceso de `README.md`. Cada ítem, al activarse
 
 - [ ] **CFG-NEW-001** 🟢 Gestión de organizaciones, procesos y plantillas (varios `*Service`
   en `configuration-forms`) — spec de casos de uso por subdominio.
+- [ ] **CFG-NEW-002** 🔴 Terminar la migración de la configuración del sistema "flex" a Angular
+  (pasar todo a Angular).
+
+## Consumo (Units)
+
+- [ ] **CONS-NEW-001** 🟡 Crear funcionalidad para calcular "Units" de consumo (nueva
+  funcionalidad, pendiente de especificar casos de uso y contrato).
+
+## Infraestructura / Tenants
+
+- [ ] **INF-NEW-001** 🟡 Probar la creación de tenants (multi-tenancy por catálogo JDBC).
 
 ## Notas
 
-- Antes de implementar cualquiera, revisar `contract/api-contract.md` §8 (pendientes de contrato)
+- Antes de implementar cualquiera, revisar `contract/api-contract.md` §16 (pendientes de contrato)
   y completar los esquemas OpenAPI faltantes (`UsuarioAutenticacionDTO`, `OrganizacionDTO`,
   `FieldResponse`, etc.).
-- Los dominios aún sin carpeta (`documents`, `tasks`, `accounting`, `massive`, `notifications`,
-  `config-forms`) se crean al activar su primer caso de uso.
+- Todos los dominios documentados (`authentication`, `documents`, `tasks`, `accounting`,
+  `massive`, `notifications`, `config-forms`, `persons`, `authorization`, `document-transition`)
+  ya tienen carpeta en `specs/domains/`. Los nuevos ítems de este backlog generan/extienden
+  sus `use-cases/requirements/design/tasks` al activarse.
