@@ -20,6 +20,11 @@ servers:
     variables:
       host:
         default: backend
+  - url: https://{host}
+    description: Base SPA (rest/document/template/user)
+    variables:
+      host:
+        default: backend
 
 tags:
   - name: auth-internal
@@ -235,6 +240,54 @@ components:
         message:
           type: string
         detail:
+          type: string
+
+    PedidoVentaDTO:
+      type: object
+      description: Documento/expediente (com.softure.document_execution.domain)
+      additionalProperties: true
+      properties:
+        llaveTabla:
+          type: string
+        nombre:
+          type: string
+        plantilla:
+          type: string
+        descripcion:
+          type: string
+        estadoExpediente:
+          type: string
+        estadoNombre:
+          type: string
+        messages:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    PedidoVentaFilterDTO:
+      type: object
+      additionalProperties: true
+      properties:
+        llaveTabla:
+          type: string
+        plantilla:
+          type: string
+        securityToken:
+          type: string
+
+    PedidoVentaAjusteDTO:
+      type: object
+      description: Transición de estado (com.softure.document_transition.domain)
+      additionalProperties: true
+
+    PedidoVentaCaracteristicaFilterDTO:
+      type: object
+      additionalProperties: true
+      properties:
+        campo:
+          type: string
+        securityToken:
           type: string
 
   responses:
@@ -593,3 +646,199 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
+
+  /rest/guardarDocumento:
+    post:
+      tags: [documents]
+      summary: Crear o editar documento
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaDTO'
+      responses:
+        '200':
+          description: Documento resumido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /rest/consultarDocumento:
+    post:
+      tags: [documents]
+      summary: Documento completo por llaveTabla
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Documento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /rest/listarDocumentos:
+    post:
+      tags: [documents]
+      summary: Listar documentos con filtros
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /rest/changeState:
+    post:
+      tags: [documents]
+      summary: Cambiar estado del documento
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaAjusteDTO'
+      responses:
+        '200':
+          description: Ajuste guardado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaAjusteDTO'
+
+  /rest/consultarDatosBase:
+    post:
+      tags: [documents]
+      summary: Datos base/dependentes de campo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
+      responses:
+        '200':
+          description: Datos base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
+
+  /rest/upload:
+    post:
+      tags: [documents]
+      summary: Subir archivo adjunto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: URL del archivo (en message)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /document/getDocuments:
+    post:
+      tags: [documents]
+      summary: Listar documentos (header)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/getInventory/{id}:
+    get:
+      tags: [documents]
+      summary: Inventario por producto
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Inventario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /template/getTemplates/{profile}:
+    get:
+      tags: [documents]
+      summary: Plantillas por perfil (ADMIN/READER/usuario)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: profile
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plantillas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true

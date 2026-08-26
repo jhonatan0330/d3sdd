@@ -99,14 +99,47 @@ DTOs (ver `openapi.yaml` para esquemas completos):
 - `DocumentResponse { template, id, code, active, stateId, stateName, fields[], fullValue, pendingValue }`
 - `SharedIdResponse { id, code?, state?, comment?, messages[] }`
 
-## 6. Otros endpoints usados por la SPA (contract parcial)
+## 6. API interna de documentos (dominio `documents`)
 
-Documentados en sus dominios, listados aquí para trazabilidad:
+Además de la API externa `/api/*` y la auth `/main/*`, la SPA consume los siguientes
+endpoints para el ciclo de vida de expedientes. Detalle completo en
+[`domains/documents`](domains/documents/use-cases.md).
 
-- Documentos: `/rest/guardarDocumento`, `/rest/consultarDocumento`, `/rest/validateBeforeNew`,
-  `/rest/changeState`, `/rest/consultarDatosBase`, `/rest/upload`, `/rest/changePicture`,
-  `/document/getDocuments`, `/document/getInventory/{id}`, `/template/*`, `/user/dfa`,
-  `/user/document/{query}`.
+| Método | Path | Descripción | Auth |
+|--------|------|-------------|------|
+| POST | `/rest/guardarDocumento` | Crear/editar documento (`PedidoVentaDTO`); header `non-duplicate` opcional | Sí (header) |
+| POST | `/rest/validateBeforeNew` | Validar reglas previas a crear | Sí |
+| POST | `/rest/consultarDocumento` | Documento completo por `llaveTabla` | Sí |
+| POST | `/rest/listarDocumentos` | Listar con filtros | Sí |
+| POST | `/rest/changeState` | Cambiar estado (`PedidoVentaAjusteDTO`) | Sí |
+| POST | `/rest/consultarDatosBase` | Datos base/dependentes de campo | Sí |
+| POST | `/rest/obtenerCampos` | Campos de una plantilla | Sí |
+| POST | `/rest/upload` | Subir archivo (`MultipartFile`) → URL | Sí (opc) |
+| POST | `/rest/saveByMassive` | Guardar desde carga masiva | Sí |
+| POST | `/document/getDocument` | Documento completo (**token en body**, legacy) | Sí (body) |
+| POST | `/document/getDocuments` | Listar (header) | Sí |
+| POST | `/document/saveDocument` | Guardar (**token en body**, legacy) | Sí (body) |
+| POST | `/document/upload` | Subir archivo | Sí (opc) |
+| GET  | `/document/getInventory/{id}` | Inventario por producto | Sí |
+| GET  | `/template/getTemplates/{profile}` | Plantillas por perfil (`ADMIN`/`READER`/usuario) | Sí |
+| GET  | `/template/getFields?id=` | Campos de plantilla | Sí |
+| POST | `/template/getFieldData` | Datos de campo | Sí |
+| POST | `/template/getPropertyRelations` | Relaciones de propiedad | Sí |
+| POST | `/template/validateLoad` | Validar carga de plantilla | Sí |
+| POST | `/template/getTrace` | Trazabilidad (gestores) | Sí |
+| GET  | `/template/getTraceFields/{documentId}/{transaction}` | Campos de trazabilidad | Sí |
+
+> Endpoints legacy `/document/getDocument` y `/document/saveDocument` reciben el token en el
+> body; pendiente migrar a header (ver `domains/documents/tasks.md` T-DOC-012).
+
+## 7. Cambios y versionado
+
+No hay versionado de API formal. Registrar aquí cambios breaking:
+
+| Fecha | Cambio | Breaking | Afecta |
+|-------|--------|:--------:|--------|
+| 2026-08-26 | Creación del contract SDD (baseline) | No | Todos |
+| 2026-08-26 | Documentación dominio `documents` (endpoints `/rest`,`/document`,`/template`) | No | Documentos |
 
 ## 7. Cambios y versionado
 

@@ -12,7 +12,7 @@ y está vinculada a los casos de uso del SDD (ver [`specs/`](../specs/README.md)
 |---------|--------|-----------------|
 | Ingreso | Login de usuario, Google, recuperación | [CU-AUTH-001/002/005](../specs/domains/authentication/use-cases.md) |
 | Navegación | Menú lateral y módulos | — |
-| Documentos | Crear/consultar/expedir expedientes | (pendiente de spec) |
+| Documentos | Crear/consultar/expedir expedientes | [CU-DOC-001..010](../../specs/domains/documents/use-cases.md) |
 | Tareas | Gestión de tareas | (pendiente de spec) |
 | Contabilidad | Comprobantes / plan contable | (pendiente de spec) |
 | Carga masiva | Carga de documentos en lote | (pendiente de spec) |
