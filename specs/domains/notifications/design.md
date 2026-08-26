@@ -1,8 +1,8 @@
 # Diseño — Notificaciones (NOT)
 
-## Paquetes (objetivo ADR-001)
-- `d3.notification` ← `com.softure.notification`
-- `d3.core` (UsuarioDTO/UsuarioSvc) ← `com.softure.logisticpymes`
+## Paquetes (realizado según ADR-001)
+- `d3.notification` (notificaciones)
+- `d3.logisticpymes` (UsuarioDTO/UsuarioSvc)
 
 ## Componentes
 - `NotificationController` (`/notification`): orquesta actividades.

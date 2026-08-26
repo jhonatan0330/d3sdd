@@ -1,15 +1,15 @@
 # Diseño — Configuración y Formularios (CFG)
 
-## Paquetes (objetivo ADR-001)
-- `d3.property` ← `com.softure.property`
-- `d3.config` ← `com.softure.configuration_file`
-- `d3.form` ← `com.softure.process_form`
+## Paquetes (realizado según ADR-001)
+- `d3.property` (propiedades)
+- `d3.configuration_file` (export/import de configuración)
+- `d3.process_form` (formularios dinámicos)
 
 ## Componentes
-- `PropertyController` (`/property`): `PropiedadSvc`, `PropiedadValorDefinidoSvc`.
-- `ConfigurationController` (`/configuration`): `ExportConfigurationFileService`,
+- `PropertyController` (`d3.property`, `/property`): `PropiedadSvc`, `PropiedadValorDefinidoSvc`.
+- `ConfigurationController` (`d3.configuration_file`, `/configuration`): `ExportConfigurationFileService`,
   `ImportConfigurationFileService`.
-- Formularios dinámicos: `com.softure.process_form` (pendiente mapear).
+- Formularios dinámicos: `d3.process_form` (`TemplateController`, `/template`).
 
 ## DTOs
 - `PropiedadDTO`, `PropiedadFilterDTO`, `PropiedadValorDefinidoDTO`,

@@ -8,7 +8,7 @@ Decisiones de diseño del dominio de autenticación. Referencia: `use-cases.md`,
 **Decisión:** Migrar de token opaco (llave de `usuariosesion_ussp`) a JWT HS256, manteniendo
 la tabla de sesiones como fuente de verdad para revocación.
 
-- `JwtService` (`com.softure.authentication.application`): genera/parsea/valida JWT HS256.
+- `JwtService` (`d3.authentication.application`): genera/parsea/valida JWT HS256.
 - Claims: `sub`/`user` (llave usuario), `userId`, `userName`, `org`, `tenant`,
   `jti` (id de sesión = `cuss_llave`), `iat`, `exp`.
 - **Compatibilidad:** la validación resuelve `jti` si el token tiene 3 segmentos (`.`);

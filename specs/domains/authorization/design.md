@@ -1,8 +1,8 @@
 # Diseño — Autorización y Roles (AUT)
 
-## Paquetes (objetivo ADR-001)
-- `d3.authorization` ← `com.softure.authorization` (RolAcceso*)
-- `d3.auth` ← `com.softure.authentication` (UsuarioAutenticacion*)
+## Paquetes (realizado según ADR-001)
+- `d3.authorization` (RolAcceso*)
+- `d3.authentication` (UsuarioAutenticacion*)
 
 ## Componentes
 - `UserController` (`/user`): `getRole`, `roles/{userId}`,

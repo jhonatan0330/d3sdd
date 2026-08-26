@@ -1,8 +1,8 @@
 # Diseño — Personas / Usuarios (PER)
 
-## Paquetes (objetivo ADR-001)
-- `d3.core` ← `com.softure.logisticpymes` (UsuarioDTO, UsuarioSvc, UsuarioFilterDTO)
-- `d3.property` ← `com.softure.property` (PropertyGetWithCacheService)
+## Paquetes (realizado según ADR-001)
+- `d3.logisticpymes` (UsuarioDTO, UsuarioSvc, UsuarioFilterDTO)
+- `d3.property` (PropertyGetWithCacheService)
 
 ## Componentes
 - `UserController` (`/user`): orquesta consultas de usuarios.

@@ -10,7 +10,7 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 | **authentication** | Login, Google, checkToken, cambio/recuperación clave, logout | ✅ | ✅ | 🔧 | ✅ (login) | AUTH-NEW-001..005 | 🔧 |
 | **documents** | Expedientes/pedidos: guardar, consultar, listar, changeState, upload, plantillas | ✅ | ✅ | ✅ | ✅ | DOC-NEW-002..003 | 🔧 |
 | **tasks** | Crear/asignar tareas (`TaskRest`) | ✅ | ✅ | ✅ | ✅ | TASK-NEW-001..002 | 🔧 |
-| **accounting** | Comprobantes y plan contable (`VoucherRest`, `PlanAccountingRest`) | ✅ | ✅ (§8) | ✅ | ✅ ([accounting.md](../../docs/user-guide/accounting.md)) | ACC-NEW-001..002 | ✅ |
+| **accounting** | Comprobantes y plan contable (`VoucherController`, `PlanAccountingController`) | ✅ | ✅ (§8) | ✅ | ✅ ([accounting.md](../../docs/user-guide/accounting.md)) | ACC-NEW-001..002 | ✅ |
 | **massive** | Carga masiva de documentos (`MassiveRest`) | ✅ | ✅ (§9) | ✅ | ✅ ([massive-notifications.md](../../docs/user-guide/massive-notifications.md)) | MAS-NEW-001 | ✅ |
 | **notifications** | Centro de notificaciones (`NotificationController`) | ✅ | ✅ (§10) | ✅ | ✅ ([massive-notifications.md](../../docs/user-guide/massive-notifications.md)) | NOT-NEW-001 | 🔧 |
 | **config-forms** | Org, procesos, plantillas, servidores (`PropertyController`,`ConfigurationController`) | ✅ | ✅ (§11) | ✅ | ✅ ([config-persons.md](../../docs/user-guide/config-persons.md)) | CFG-NEW-001 | 🔧 |
@@ -51,6 +51,27 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - Ítems en backlog: ~20 (ver `specs/backlog.md`).
 
 ## Próximos pasos sugeridos
-1. Migrar paquetes `com.softure.*` → `d3.*` (ADR-001) dominio por dominio.
+1. Renombrado de paquetes a `d3.*` ya realizado (ver ADR-001); pendiente actualizar `d3brain/AGENTS.md`.
 2. Completar esquemas `openapi.yaml` de los DTOs nuevos.
 3. Cubrir en Angular los servicios aún sin spec de front (contabilidad, notificaciones).
+
+## Módulos detectados tras la reorganización (sin spec SDD aún)
+
+La reorganización de paquetes reveló módulos `d3.*` que aún no tienen carpeta de dominio.
+Candidatos a nuevos dominios (ver inventario en ADR-001):
+
+| Módulo | Paquete | Posible dominio |
+|--------|---------|-----------------|
+| Facturación electrónica | `d3.fe` (`FEController`, `fe`) | `fe` |
+| Multi-tenancy | `d3.multitenancy` | `multitenancy` (ver INF-NEW-001) |
+| Inventario | `d3.inventory` | `inventory` |
+| Dinero/moneda | `d3.money` | `money` |
+| Tarifas | `d3.tariff` | `tariff` |
+| Reportes | `d3.report` | `report` |
+| Correo | `d3.mail` | `mail` |
+| Subida de archivos | `d3.upload` (`FileController`) | `upload` |
+| Diseñador de procesos | `d3.process_designer` | `process-designer` |
+| Web services | `d3.webservice` | `webservice` |
+| Homologación | `d3.homologate` | `homologate` |
+| Log de transacciones | `d3.document_transaction` | `document-transaction` |
+| Utilidades base | `d3.java`, `d3.shared` | (transversal) |

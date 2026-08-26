@@ -244,7 +244,7 @@ components:
 
     PedidoVentaDTO:
       type: object
-      description: Documento/expediente (com.softure.document_execution.domain)
+      description: Documento/expediente (d3.document_execution.domain)
       additionalProperties: true
       properties:
         llaveTabla:
@@ -278,7 +278,7 @@ components:
 
     PedidoVentaAjusteDTO:
       type: object
-      description: Transición de estado (com.softure.document_transition.domain)
+      description: Transición de estado (d3.document_transition.domain)
       additionalProperties: true
 
     PedidoVentaCaracteristicaFilterDTO:

@@ -1,7 +1,7 @@
 # Diseño — Carga Masiva (MAS)
 
-## Paquetes (objetivo ADR-001)
-- `d3.massive` ← `com.softure.massiveload`
+## Paquetes (realizado según ADR-001)
+- `d3.massiveload`
 
 ## Componentes
 - `MassiveRest` (`massiveload`): sincronización de ítems y ejecución de carga.

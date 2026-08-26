@@ -5,11 +5,11 @@ Decisiones de diseño del dominio de tareas. Referencia: `use-cases.md`, `requir
 
 ## D1. Paquetes (target según ADR-001)
 
-| Hoy | Target (ADR-001) |
-|-----|------------------|
-| `com.task.task.domain` | `d3.task.domain` |
-| `com.task.task.application` | `d3.task.application` |
-| `com.task.task` (rest) | `d3.task.infrastructure` |
+| Realizado (raíz `d3`) |
+|--------|
+| `d3.task.domain` |
+| `d3.task.application` |
+| `d3.task.infrastructure` |
 
 Clases: `TaskDTO`, `TaskFilterDTO`, `TaskRequest` (domain); `TaskRest` (infrastructure);
 `TaskCreateService`, `TaskUpdateService`, `TaskDeleteService`, `TaskGetByUserService`,

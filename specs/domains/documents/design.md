@@ -3,21 +3,19 @@
 Decisiones de diseño del dominio de documentos. Referencia: `use-cases.md`, `requirements.md`,
 `contract/api-contract.md` §6 y `specs/decisions/ADR-001-package-rename.md`.
 
-## D1. Paquetes (target según ADR-001)
+## D1. Paquetes (realizado según ADR-001)
 
-Aunque hoy el código usa `com.softure.document_execution.*`,
-`com.softure.document_transition.*`, `com.softure.process_form.*`, el diseño target es:
+El código ya usa la raíz `d3` (renombrado ejecutado):
 
-| Hoy | Target (ADR-001) |
-|-----|------------------|
-| `com.softure.document_execution.domain` | `d3.document.execution.domain` |
-| `com.softure.document_execution.application` | `d3.document.execution.application` |
-| `com.softure.document_transition.application` | `d3.document.transition.application` |
-| `com.softure.process_form.application` | `d3.form.application` |
-| `com.softure.process_form.infrastructure` | `d3.form.infrastructure` |
+| Módulo | Paquete |
+|--------|---------|
+| Ejecución de documentos | `d3.document_execution.{domain,application,infrastructure}` |
+| Transición de estado | `d3.document_transition.{domain,application,infrastructure}` |
+| Log de transacciones | `d3.document_transaction.{domain,application,infrastructure}` |
+| Formularios dinámicos | `d3.process_form.{domain,application,infrastructure}` |
 
-Controladores (hoy): `APIController` (`/rest`), `DocumentController` (`/document`),
-`TemplateController` (`/template`).
+Controladores: `APIController` (`/rest`), `DocumentController` (`/document`),
+`TemplateController` (`/template`), todos en `d3.document_execution` / `d3.process_form`.
 
 ## D2. Flujo de guardado
 

@@ -7,4 +7,4 @@
 
 ## No funcionales
 - NF-PER-001: Autenticación por `Authorization`.
-- NF-PER-002: `UsuarioDTO` vive en `d3.core` (ADR-001: `com.softure.logisticpymes`).
+- NF-PER-002: `UsuarioDTO` vive en `d3.logisticpymes` (ADR-001).

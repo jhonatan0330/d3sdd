@@ -7,4 +7,4 @@
 
 ## No funcionales
 - NF-DT-001: Autenticación por `Authorization` (o `securityToken` en API externa).
-- NF-DT-002: Pertenece a `d3.document.transition` / `d3.document.execution` (ADR-001).
+- NF-DT-002: Pertenece a `d3.document_transition` / `d3.document_execution` (ADR-001).

@@ -79,7 +79,7 @@ Para **cada nueva funcionalidad** (o bug que cambie contrato):
 
 - IDs de caso de uso: `CU-<dominio>-<nnn>` (ej. `CU-AUTH-001`).
 - Ítems de task: `T-<dominio>-<nnn>` con estado `[ ]` / `[x]`.
-- Los DTOs se nombran igual en back (`com.softure...domain`) y front (`sw42.domain`).
+- Los DTOs se nombran igual en back (`d3...domain`) y front (`sw42.domain`).
 - El contrato de API NO tiene versionado formal todavía; los cambios breaking se listan en
   `contract/api-contract.md` > "Cambios y versionado".
 

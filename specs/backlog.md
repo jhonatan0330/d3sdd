@@ -33,8 +33,8 @@ carpeta de dominio siguiendo el proceso de `README.md`. Cada ítem, al activarse
 
 ## Accounting (voucher / plan contable)
 
-- [ ] **ACC-NEW-001** 🟡 Preparar/emitir comprobantes (`VoucherRest`) — casos de uso y contrato.
-- [ ] **ACC-NEW-002** 🟢 Plan contable y consulta de cuentas (`PlanAccountingRest`).
+- [ ] **ACC-NEW-001** 🟡 Preparar/emitir comprobantes (`VoucherController`, `d3.accounting_voucher`) — casos de uso y contrato.
+- [ ] **ACC-NEW-002** 🟢 Plan contable y consulta de cuentas (`PlanAccountingController`, `d3.accounting_plan`).
 
 ## Massive load
 
