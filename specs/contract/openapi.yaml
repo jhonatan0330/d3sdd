@@ -1044,6 +1044,30 @@ paths:
             application/json:
               schema: { type: object }
 
+  /massiveload/template:
+    post:
+      tags: [massive]
+      summary: Descargar plantilla base (xlsx/xml/json)
+      security: [bearerAuth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateId: { type: string }
+                format: { type: string, enum: [xlsx, xml, json] }
+      responses:
+        '200':
+          description: URL del archivo generado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+
   /massiveload/upload:
     post:
       tags: [massive]

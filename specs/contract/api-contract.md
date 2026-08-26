@@ -185,7 +185,7 @@ Importación de datos en lote. Detalle en
 | POST | `massiveload/execute/{loadId}` | Ejecutar/procesar carga | Sí |
 | GET  | `massiveload/{loadId}` | Obtener carga (detalle) | Sí |
 | GET  | `massiveload/{loadId}/items` | Ítems de la carga | Sí |
-| GET  | `massiveload/template` | ❑ Descargar plantilla base (CU-MAS-005, por crear) | Sí |
+| POST | `massiveload/template` | ❑ Descargar plantilla base: `{templateId, format}` → `{url}` (CU-MAS-005, por crear) | Sí |
 
 ## 10. API de notificaciones (dominio `notifications`)
 

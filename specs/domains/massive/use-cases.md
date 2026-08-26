@@ -37,21 +37,28 @@ DTOs: `MassiveMasterRequest`, `MassiveMasterDTO`, `MassiveItemDTO`, `MasivaItemR
 ## CU-MAS-005 — Descargar archivo base (plantilla)
 
 - **Actor:** Usuario autenticado
-- **Precondiciones:** usuario con permiso de carga masiva.
-- **Postcondiciones:** el usuario obtiene el archivo base para llenar.
+- **Precondiciones:** usuario con permiso de carga masiva; existe la plantilla (`templateId`).
+- **Postcondiciones:** el usuario descarga un archivo base (xlsx/xml/json) para llenar.
 
 ### Pasos — Frontend
-1. El usuario hace clic en "Descargar plantilla".
-2. La SPA descarga el archivo base.
-3. El navegador guarda la plantilla.
+1. Junto al botón "Descargar plantilla" hay un dropdown con el formato a descargar:
+   `xlsx` (por defecto), `xml`, `json`.
+2. El usuario escoge el formato y presiona el botón.
+3. Al recibir la respuesta del servidor, se abre/descarga la URL del archivo para que el
+   usuario lo modifique.
 
 ### Pasos — Backend
-1. **Endpoint por crear** (backlog MAS-NEW-002): entregar la plantilla
-   (p.ej. `GET massiveload/template` o vía `/files`).
-2. Devuelve el archivo (`application/octet-stream`).
+1. El sistema recibe el `id` de la plantilla y el tipo a exportar, y genera un archivo del
+   tipo solicitado.
+   1.1 Cuando es `xlsx`, la primera fila debe tener los nombres de los campos de la plantilla
+   (normalizados).
+2. Almacena el archivo con el servicio de upload (`d3.upload`).
+3. Devuelve la `url` del archivo.
 
 ### Contrato
-- Endpoint: `GET massiveload/template` (❑ por crear) · Auth: `Authorization`.
+- Endpoint: `POST massiveload/template` (❑ por crear — backlog MAS-NEW-002)
+  request: `{ templateId, format }` · response: `{ url }` (luego servida por `GET /files/...`)
+- Auth: `Authorization`.
 
 ## CU-MAS-006 — Cargar el archivo
 
