@@ -30,6 +30,7 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 | **mail** | Correo/plantillas (`d3.mail`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
 | **homologate** | Homologación (`d3.homologate`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ | ✅ |
 | **document-transaction** | Log de transacciones (`d3.document_transaction`) | ✅ | 🔧 | ✅ | ⏳ | ⏳ (DOC-NEW-002) | ✅ |
+| **assistant** | Asistente de comandos de la SPA (`@doc`, `/módulo`, F9) — **front-only** | ✅ | — (reusa documents §6) | ✅ | ✅ ([assistant.md](../../docs/user-guide/assistant.md)) | — | 🔧 |
 
 ## Detalle por dominio
 
@@ -52,12 +53,20 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - Contract: endpoints agregados en `contract/api-contract.md` §8–§14.
 - User-guide: páginas por dominio en `docs/user-guide/`.
 
+### assistant 🔧 (front-only)
+- Specs: `specs/domains/assistant/` (use-cases, design, tasks, front).
+- Contract: **no tiene backend propio**; reutiliza `documents` §6
+  (`POST /document/getDocuments`) y el caché de `TemplateService` (`GET /template/getTemplates/{profile}`).
+- User-guide: `docs/user-guide/assistant.md`.
+- Nota: el asistente **no es una IA**; es un buscador/navegador de comandos (`@`, `/`).
+- Cambio en curso: `MatDialog` → panel lateral derecho (ver `design.md` D1, `tasks.md` T-ASSISTANT-006).
+
 ## Cuenta total de avance
 
-- Dominios con spec completa: **22** (authentication, documents, tasks, accounting, massive,
+- Dominios con spec completa: **23** (authentication, documents, tasks, accounting, massive,
   notifications, config-forms, persons, authorization, document-transition, fe, upload,
   webservice, process-designer, multitenancy, inventory, money, tariff, report, mail,
-  homologate, document-transaction).
+  homologate, document-transaction, **assistant**).
 - Dominios con contrato en `contract/`: todos documentados (§1–§14).
 - API externa formalizada: ✅ (`openapi.yaml`).
 - Secciones de user-guide: **12** (index, login, navigation, documents, tasks, accounting,
