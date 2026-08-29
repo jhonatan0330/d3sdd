@@ -1,7 +1,7 @@
-# Documentos / Expedientes
+﻿# Documentos / Expedientes
 
 Cómo trabajar con expedientes en la app. Casos de uso relacionados:
-[CU-DOC-001..010](../specs/domains/documents/use-cases.md).
+[CU-DOC-001..010](../specs/domains/documents/use-cases-back.md).
 
 > Los endpoints exactos y el formato de los DTOs están en el
 > [contrato de API](../specs/contract/api-contract.md) §6.
@@ -42,3 +42,4 @@ Cómo trabajar con expedientes en la app. Casos de uso relacionados:
 ##Inventario
 
 - Al vincular un producto, la app consulta `/document/getInventory/{id}` para mostrar existencias.
+

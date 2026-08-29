@@ -1,7 +1,7 @@
-# Tareas
+﻿# Tareas
 
 Gestión de tareas personales en la app. Casos de uso relacionados:
-[CU-TASK-001..005](../specs/domains/tasks/use-cases.md).
+[CU-TASK-001..005](../specs/domains/tasks/use-cases-back.md).
 
 > Endpoints y DTOs en el [contrato de API](../specs/contract/api-contract.md) §7.
 
@@ -28,3 +28,4 @@ Gestión de tareas personales en la app. Casos de uso relacionados:
 
 - Las fechas usan el formato `yyyy-MM-dd@HH:mm:ss.SSSZ` (zona `America/Bogota`).
 - Las tareas son por usuario; no hay tareas compartidas/asignadas a terceros hoy.
+

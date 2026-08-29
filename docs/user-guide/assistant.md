@@ -1,4 +1,4 @@
-# Asistente (panel de comandos)
+﻿# Asistente (panel de comandos)
 
 > El asistente **no es una inteligencia artificial**: es un buscador/navegador de comandos
 > dentro de la aplicación. Se abre como un **panel lateral a la derecha** (ya no es un modal).
@@ -30,6 +30,7 @@
 
 ## Casos de uso relacionados (SDD)
 
-- [CU-ASSISTANT-001..004](../../specs/domains/assistant/use-cases.md)
+- [CU-ASSISTANT-001..004](../../specs/domains/assistant/use-cases-back.md)
 - Consume los dominios `documents` (búsqueda de documentos / plantillas) y `authentication`
   (solo avatar del usuario).
+

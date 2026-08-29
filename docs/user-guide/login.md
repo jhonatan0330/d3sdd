@@ -1,9 +1,9 @@
-# Ingreso a la aplicación
+﻿# Ingreso a la aplicación
 
 Pantalla: `/sign-in`. Casos de uso relacionados:
-[CU-AUTH-001](../specs/domains/authentication/use-cases.md),
-[CU-AUTH-002](../specs/domains/authentication/use-cases.md),
-[CU-AUTH-005](../specs/domains/authentication/use-cases.md).
+[CU-AUTH-001](../specs/domains/authentication/use-cases-back.md),
+[CU-AUTH-002](../specs/domains/authentication/use-cases-back.md),
+[CU-AUTH-005](../specs/domains/authentication/use-cases-back.md).
 
 ## Ingreso con usuario y clave
 
@@ -36,5 +36,6 @@ Desde el menú de usuario, selecciona **Cerrar sesión**. La app elimina tu sesi
 te devuelve a `/sign-in`.
 
 > NOTA: hoy el cierre de sesión limpia el token en el navegador; la invalidación remota de la
-> sesión ocurrirá al cambiar clave (ver [CU-AUTH-006](../specs/domains/authentication/use-cases.md)
+> sesión ocurrirá al cambiar clave (ver [CU-AUTH-006](../specs/domains/authentication/use-cases-back.md)
 > y backlog `AUTH-NEW-001`).
+
