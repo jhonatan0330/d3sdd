@@ -1,6 +1,6 @@
 # Casos de uso — Carga Masiva (MAS) (FRONTEND)
 
-Dominio: `massive`. Paquete `d3.massiveload`. Contrato: §9.
+Dominio: `massiveload`. Paquete `d3.massiveload`. Contrato: §9.
 
 > Capa frontend (d3_front). Solo pasos de UI/componentes. Los contratos/endpoints
 > van en `use-cases-back.md`.

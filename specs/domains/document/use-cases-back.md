@@ -1,9 +1,11 @@
-﻿# Casos de uso — Documentos / Expedientes (DOC) (BACKEND)
+# Casos de uso — Documentos / Expedientes (DOC) (BACKEND)
 
 > Capa backend (d3brain). Contratos/endpoints aquí. Los pasos de UI (si los hubiera) van en use-cases-front.md.
 
-Dominio: `documents` (expedientes = `PedidoVentaDTO`). Contrato asociado:
+Dominio: `document` (expedientes, transición de estado, log de transacciones). Contrato asociado:
 [`contract.md`](../../contract.md) §6.
+
+## Documentos / Expedientes
 
 | ID | Nombre | Actor | Estado |
 |----|--------|-------|--------|
@@ -69,7 +71,7 @@ Dominio: `documents` (expedientes = `PedidoVentaDTO`). Contrato asociado:
   - Listar plantillas: `GET /template/getTemplates/{profile}` (`ADMIN`/`READER`/otro).
   - Obtener campos de una plantilla: `POST /rest/obtenerCampos` o
     `GET /template/getFields?id=`.
-- **Ver también:** dominio `config-forms` (creación de plantillas).
+- **Ver también:** dominio `configuration` (creación de plantillas).
 
 ## CU-DOC-008 — Consultar datos base de un campo
 
@@ -84,3 +86,41 @@ Dominio: `documents` (expedientes = `PedidoVentaDTO`). Contrato asociado:
 
 - **Pasos:** `POST /template/getTrace` (gestores) y `GET /template/getTraceFields/{documentId}/{transaction}`.
 
+---
+
+## Transición de estado
+
+| ID | Nombre | Actor | Estado |
+|----|--------|-------|--------|
+| CU-DT-001 | Cambiar estado de documento | Usuario/Sistema | ✅ |
+| CU-DT-002 | Traza de relaciones del documento | Usuario autenticado | ✅ |
+| CU-DT-003 | Campos de traza por transacción | Usuario autenticado | ✅ |
+
+---
+
+## CU-DT-001 — Cambiar estado
+`POST rest/changeState` con `PedidoVentaAjusteDTO` → `PedidoVentaAjusteDTO`.
+
+## CU-DT-002 — Traza de relaciones
+`POST template/getTrace` con `DocumentoRelacionGestorFilterDTO` →
+`List<DocumentoRelacionGestorDTO>`.
+
+## CU-DT-003 — Campos de traza
+`GET template/getTraceFields/{documentId}/{transaction}` →
+`List<PedidoVentaCaracteristicaDTO>`.
+
+---
+
+## Log de transacciones
+
+| ID | Nombre | Actor | Estado |
+|----|--------|-------|--------|
+| CU-DTX-001 | Registrar log de transacción | Sistema | ✅ |
+| CU-DTX-002 | Registrar error de transacción | Sistema | ✅ |
+| CU-DTX-003 | Consultar transacciones de un documento | Sistema | ✅ |
+
+---
+
+## CU-DTX-001..003
+`TransaccionLogSvc`, `TransaccionErrorSvc`, `DocumentoTransaccionSvc` registran y consultan
+la traza de transacciones asociadas a documentos/expedientes.

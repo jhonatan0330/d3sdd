@@ -13,7 +13,7 @@ No es fija. El cliente SPA resuelve la URL del backend en runtime:
 2. Si trae una URL (distinta de `''` o `'SW42'`), la usa; si no, usa `location.origin`.
 3. La guarda en `LocalConstants.URL_CONF` y la antepone a cada path vía `LocalStoreService.getUrlAccess(path)`.
 
-Los paths en este documento son **relativos** a esa base (ej. `/main/autenticarUsuarioAutenticacion`).
+Los paths en este documento son **relativos** a esa base (ej. `/document/main/autenticarUsuarioAutenticacion`).
 
 ## 2. Autenticación y sesión
 
@@ -59,13 +59,13 @@ Todas usan `POST` salvo donde se indique. El token se envía en `Authorization` 
 
 | Método | Path | Descripción | Auth |
 |--------|------|-------------|------|
-| POST | `/main/autenticarUsuarioAutenticacion` | Login con usuario/clave | No |
-| POST | `/main/googleAuthenticate` | Login con `id_token` de Google | No |
-| POST | `/main/checkToken` | Validar token de sesión actual | Sí (`securityToken`) |
-| POST | `/main/cambiarClave` | Cambiar clave propia u de otro usuario | Sí |
-| POST | `/main/cambiarClaveOtherSystem` | Cambiar clave en sistema externo | Sí |
-| POST | `/main/solicitarNuevaClave` | Recuperar / solicitar nueva clave | No |
-| GET  | `/main/obtenerPrincipalOrganizacion` | Org principal (carousel, módulos) | Sí |
+| POST | `/document/main/autenticarUsuarioAutenticacion` | Login con usuario/clave | No |
+| POST | `/document/main/googleAuthenticate` | Login con `id_token` de Google | No |
+| POST | `/document/main/checkToken` | Validar token de sesión actual | Sí (`securityToken`) |
+| POST | `/document/main/cambiarClave` | Cambiar clave propia u de otro usuario | Sí |
+| POST | `/document/main/cambiarClaveOtherSystem` | Cambiar clave en sistema externo | Sí |
+| POST | `/document/main/solicitarNuevaClave` | Recuperar / solicitar nueva clave | No |
+| GET  | `/document/main/obtenerPrincipalOrganizacion` | Org principal (carousel, módulos) | Sí |
 
 DTOs de auth (definir campos faltantes en `openapi.yaml`):
 
@@ -107,20 +107,27 @@ endpoints para el ciclo de vida de expedientes. Detalle completo en
 
 | Método | Path | Descripción | Auth |
 |--------|------|-------------|------|
-| POST | `/rest/guardarDocumento` | Crear/editar documento (`PedidoVentaDTO`); header `non-duplicate` opcional | Sí (header) |
-| POST | `/rest/validateBeforeNew` | Validar reglas previas a crear | Sí |
-| POST | `/rest/consultarDocumento` | Documento completo por `llaveTabla` | Sí |
-| POST | `/rest/listarDocumentos` | Listar con filtros | Sí |
-| POST | `/rest/changeState` | Cambiar estado (`PedidoVentaAjusteDTO`) | Sí |
-| POST | `/rest/consultarDatosBase` | Datos base/dependentes de campo | Sí |
-| POST | `/rest/obtenerCampos` | Campos de una plantilla | Sí |
-| POST | `/rest/upload` | Subir archivo (`MultipartFile`) → URL | Sí (opc) |
-| POST | `/rest/saveByMassive` | Guardar desde carga masiva | Sí |
+| POST | `/document/api/guardarDocumento` | Crear/editar documento (`PedidoVentaDTO`); header `non-duplicate` opcional | Sí (header) |
+| POST | `/document/api/validateBeforeNew` | Validar reglas previas a crear | Sí |
+| POST | `/document/api/consultarDocumento` | Documento completo por `llaveTabla` | Sí |
+| POST | `/document/api/listarDocumentos` | Listar con filtros | Sí |
+| POST | `/document/api/changeState` | Cambiar estado (`PedidoVentaAjusteDTO`) | Sí |
+| POST | `/document/api/consultarDatosBase` | Datos base/dependentes de campo | Sí |
+| POST | `/document/api/obtenerCampos` | Campos de una plantilla | Sí |
+| POST | `/document/api/upload` | Subir archivo (`MultipartFile`) → URL | Sí (opc) |
+| POST | `/document/api/saveByMassive` | Guardar desde carga masiva | Sí |
+| POST | `/document/api/getMessageToProcessField/{property}/{fieldValue}` | Mensaje de proceso de campo | Sí |
+| POST | `/document/api/logOut` | Cerrar sesión | Sí |
+| POST | `/document/api/consultarUsuario` | Consultar usuario | Sí |
 | POST | `/document/getDocument` | Documento completo (**token en body**, legacy) | Sí (body) |
 | POST | `/document/getDocuments` | Listar (header) | Sí |
 | POST | `/document/saveDocument` | Guardar (**token en body**, legacy) | Sí (body) |
 | POST | `/document/upload` | Subir archivo | Sí (opc) |
 | GET  | `/document/getInventory/{id}` | Inventario por producto | Sí |
+| POST | `/document/readActivity` | Marcar actividad leída | Sí |
+| GET  | `/document/main/checkSession` | Validar sesión (get session DTO) | Sí |
+| POST | `/document/main/consultaUsuarioDocumentoPlantilla` | Plantillas del usuario | Sí |
+| POST | `/document/main/listarUsuarioPedidoVenta` | Pedidos de venta del usuario | Sí |
 | GET  | `/template/getTemplates/{profile}` | Plantillas por perfil (`ADMIN`/`READER`/usuario) | Sí |
 | GET  | `/template/getFields?id=` | Campos de plantilla | Sí |
 | POST | `/template/getFieldData` | Datos de campo | Sí |
@@ -168,7 +175,9 @@ Comprobantes (vouchers) y plan contable. Detalle en
 | GET  | `acc/plan/account/{catalog}` | Cuentas (filtro) | Sí |
 | GET  | `acc/plan/account/{catalog}/{id}` | Cuenta | Sí |
 | GET  | `acc/plan/balance/{catalog}` | Saldos | Sí |
-| POST | `api_account/voucher` | API externa comprobante (`x-api-key`) | API key |
+| POST | `/acc/api/voucher` | API externa comprobante (`x-api-key`) | API key |
+| GET  | `/acc/api/ok` | Healthcheck API contabilidad | API key |
+| GET  | `/acc/api/ping` | Ping acumulador contable | No |
 
 DTOs: `Voucher`, `VoucherDTO`, `VoucherPrepareRequest`, `VoucherRangeRequest`,
 `AccountDTO`, `CatalogDTO`, `ResultMapDTO`.
@@ -208,14 +217,14 @@ Propiedades y export/import de configuración. Detalle en
 
 | Método | Path | Descripción | Auth |
 |--------|------|-------------|------|
-| GET  | `property/{type}/{field}` | Propiedades por tipo/campo | Sí |
-| GET  | `property/type/{type}/{filterName}` | Valores definidos | Sí |
-| GET  | `property/{key}` | Propiedad por llave | Sí |
-| POST | `property/` | Crear/editar propiedad | Sí |
-| GET  | `configuration/export` | Exportar configuración | Sí |
-| POST | `configuration/module` | Exportar por módulos | Sí |
-| POST | `configuration/import` | Importar configuración | Sí |
-| POST | `configuration/compare` | Comparar configuración | Sí |
+| GET  | `/api/config/property/{type}/{field}` | Propiedades por tipo/campo | Sí |
+| GET  | `/api/config/property/type/{type}/{filterName}` | Valores definidos | Sí |
+| GET  | `/api/config/property/{key}` | Propiedad por llave | Sí |
+| POST | `/api/config/property/` | Crear/editar propiedad | Sí |
+| GET  | `/api/config/configuration/export` | Exportar configuración | Sí |
+| POST | `/api/config/configuration/module` | Exportar por módulos | Sí |
+| POST | `/api/config/configuration/import` | Importar configuración | Sí |
+| POST | `/api/config/configuration/compare` | Comparar configuración | Sí |
 
 DTOs: `PropiedadDTO`, `PropiedadValorDefinidoDTO`, `ExportListRequest`, `FileVO`.
 
@@ -254,7 +263,7 @@ Cambio de estado y trazabilidad (complementa §6). Detalle en
 
 | Método | Path | Descripción | Auth |
 |--------|------|-------------|------|
-| POST | `rest/changeState` | Cambiar estado (`PedidoVentaAjusteDTO`) | Sí |
+| POST | `document/api/changeState` | Cambiar estado (`PedidoVentaAjusteDTO`) | Sí |
 | POST | `template/getTrace` | Traza de relaciones | Sí |
 | GET  | `template/getTraceFields/{documentId}/{transaction}` | Campos de traza | Sí |
 
@@ -268,11 +277,13 @@ No hay versionado de API formal. Registrar aquí cambios breaking:
 | 2026-08-26 | Documentación dominio `documents` (endpoints `/rest`,`/document`,`/template`) | No | Documentos |
 | 2026-08-26 | Documentación dominio `tasks` (endpoints `/task/*`) | No | Tareas |
 | 2026-08-26 | Documentación `accounting`,`massive`,`notifications`,`config-forms`,`persons`,`authorization`,`document-transition` | No | Nuevos dominios |
+| 2026-08-29 | Fusión de controllers: unificación de rutas por dominio (`/main/*`→`/document/main/*`, `/rest/*`→`/document/api/*`, `api_account/*`→`/acc/api/*`, `/property/*`→`/api/config/property/*`, `/configuration/*`→`/api/config/configuration/*`, `/process_designer/*`→`/template/designer/*`) | Sí | Frontend, consumers externos |
 
 ## 16. Pendientes de contrato
 
+- [x] Fusión de controllers: consolidación de rutas por dominio (2026-08-29).
 - [ ] Definir esquemas completos de `UsuarioAutenticacionDTO` / `OrganizacionDTO`.
-- [ ] Documentar explícitamente el header `non-duplicate` (session) usado en `/rest/guardarDocumento`.
+- [ ] Documentar explícitamente el header `non-duplicate` (session) usado en `/document/api/guardarDocumento`.
 - [ ] Decidir y documentar política de expiración/refresh de JWT.
 - [ ] Listar códigos de error (`error_code`) estandarizados por dominio.
 - [ ] Documentar DTOs nuevos en `openapi.yaml`: `Voucher*`, `AccountDTO`, `ActividadDTO`,
@@ -293,7 +304,7 @@ Módulos `d3.*` expuestos por HTTP o de servicios, documentados en `specs/domain
 | POST | `fe/generateCU` | Generar CU/CUFE | Sí | `fe` |
 | GET  | `/files/{visibility}/{type}/{year}/{month}/{day}/{filename}` | Servir archivo | Sí | `upload` |
 | POST | `/webservice/copy` | Copiar web service | Sí | `webservice` |
-| POST | `/process_designer/copy` | Copiar proceso | Sí | `process-designer` |
+| POST | `/template/designer/copy` | Copiar proceso | Sí | `process-designer` |
 
 ### 17.2 Módulos de servicio (sin controlador REST propio)
 
@@ -329,5 +340,5 @@ DTOs:
 **Comportamiento transversal (R-CU-007):**
 - Todas las respuestas HTTP (salvo exclusiones) incluyen header `X-Consumption-Delay-Seconds: <segundos>` cuando el saldo es negativo.
 - Delay aplicado = `min(|saldo_MB|, maxDelaySeconds)` donde `maxDelaySeconds` configurable (default 60).
-- Exclusiones: `/health/**`, `/actuator/**`, `/api/ping`, `/api/ok`, `/api/login`, `/main/autenticarUsuarioAutenticacion`, `/main/googleAuthenticate`, `/main/checkToken`, `/main/solicitarNuevaClave`, `/consumption-units/**`.
+- Exclusiones: `/health/**`, `/actuator/**`, `/api/ping`, `/api/ok`, `/api/login`, `/document/main/autenticarUsuarioAutenticacion`, `/document/main/googleAuthenticate`, `/document/main/checkToken`, `/document/main/solicitarNuevaClave`, `/consumption-units/**`.
 

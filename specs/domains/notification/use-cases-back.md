@@ -1,8 +1,8 @@
-﻿# Casos de uso — Notificaciones (NOT) (BACKEND)
+# Casos de uso — Notificaciones (NOT) (BACKEND)
 
 > Capa backend (d3brain). Contratos/endpoints aquí. Los pasos de UI (si los hubiera) van en use-cases-front.md.
 
-Dominio: `notifications`. Contrato: §11.
+Dominio: `notification`. Contrato: §11.
 
 | ID | Nombre | Actor | Estado |
 |----|--------|-------|--------|
@@ -24,4 +24,3 @@ Dominio: `notifications`. Contrato: §11.
 
 ## CU-NOT-004 — Usuarios para transferir
 `POST notification/userToTransfer` con `ActividadDTO` (debe incluir `documento`) → `List<UsuarioDTO>`.
-

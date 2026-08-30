@@ -22,6 +22,8 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · `[~]` en curso · 🔴 alta · 🟡 m
 - [ ] **ARCH-008** 🟢 Definir estándar de autenticación: JWT claims mínimos, API key, header `Authorization`.
 - [ ] **ARCH-009** 🟢 Documentar convenciones de frontend Angular: estructura de servicios, componentes, models.
 - [ ] **ARCH-010** 🟢 Estandarizar formato de fechas: `yyyy-MM-dd@HH:mm:ss.SSSZ`, timezone `America/Bogota`.
+- [x] **ARCH-011** 🔴 Sincronización frontend ↔ contract.md: tipos TypeScript espejo exacto del contract.
+  Ver [ADR](backlog-strategies/ARCH-011-frontend-api-sync.md).
 
 ---
 
@@ -474,6 +476,67 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · `[~]` en curso · 🔴 alta · 🟡 m
 
 ---
 
+## FRONTEND-API-SYNC
+
+> Tareas de alineación de servicios frontend con `contract.md` (ARCH-011).
+> Cada dominio requiere: crear `*.types.ts` con interfaces del contract, ajustar
+> `*.service.ts` para usar los tipos y paths correctos, y verificar que los componentes
+> consuman los nuevos tipos.
+
+### Tareas por dominio
+
+#### Tasks (piloto)
+
+- [x] **T-FRONT-001** 🔴 Crear `task/task.types.ts` con `TaskDTO` y `TaskRequest` del contract §7.
+- [x] **T-FRONT-002** 🔴 Actualizar `task/tasks.service.ts`: usar `TaskDTO`/`TaskRequest`, paths correctos, `SharedIdResponse`.
+- [ ] **T-FRONT-003** 🔴 Verificar componente `tasks.component.ts` usa los nuevos tipos.
+- [ ] **T-FRONT-004** 🔴 Corregir `getTaskById`: path `/task/{id}?id={key}` (query param).
+- [ ] **T-FRONT-005** 🔴 Corregir `createTask`: enviar `TaskRequest` con campo `user`.
+
+#### Notifications
+
+- [ ] **T-FRONT-010** 🟡 Crear/actualizar `notification/notification.types.ts` con `ActividadDTO` del contract §10.
+- [ ] **T-FRONT-011** 🟡 Verificar `notification/notification.service.ts` usa paths del contract.
+
+#### Accounting
+
+- [ ] **T-FRONT-020** 🟡 Crear `accounting/accounting.types.ts` con `Voucher`, `VoucherDTO`, `AccountDTO`, `CatalogDTO`, `ResultMapDTO` del contract §8.
+- [ ] **T-FRONT-021** 🟡 Verificar `accounting/accounting.service.ts` usa paths del contract.
+
+#### Users / Persons
+
+- [ ] **T-FRONT-030** 🟡 Crear `users/users.types.ts` con `UsuarioDTO`, `UsuarioFilterDTO` del contract §12.
+- [ ] **T-FRONT-031** 🟡 Verificar `users/contact.services.ts` usa paths del contract.
+
+#### Authorization
+
+- [ ] **T-FRONT-040** 🟢 Crear `authorization/authorization.types.ts` con `RolAccesoDTO`, `UsuarioAutenticacionDTO` del contract §13.
+- [ ] **T-FRONT-041** 🟢 Verificar endpoints de roles/2FA en `authentication/login.service.ts`.
+
+#### Documents
+
+- [ ] **T-FRONT-050** 🟢 Crear `document/document.types.ts` con `PedidoVentaDTO`, `PedidoVentaFilterDTO`, `PedidoVentaAjusteDTO` del contract §6.
+- [ ] **T-FRONT-051** 🟢 Verificar `document/service/api.service.ts` usa paths del contract (no legacy).
+- [ ] **T-FRONT-052** 🟢 Migrar llamadas a `/document/getDocument` → `/document/api/consultarDocumento`.
+- [ ] **T-FRONT-053** 🟢 Migrar llamadas a `/document/saveDocument` → `/document/api/guardarDocumento`.
+
+#### Config-forms
+
+- [ ] **T-FRONT-060** 🟢 Crear `configuration/config.types.ts` con `PropiedadDTO`, `PropiedadValorDefinidoDTO` del contract §11.
+- [ ] **T-FRONT-061** 🟢 Verificar servicios de configuración usan paths del contract.
+
+#### Massive
+
+- [ ] **T-FRONT-070** 🟢 Crear `massiveload/massive.types.ts` con `MassiveMasterRequest` del contract §9.
+- [ ] **T-FRONT-071** 🟢 Verificar `massiveload/massive.component.ts` usa paths correctos.
+
+#### Shared
+
+- [ ] **T-FRONT-080** 🔴 Crear `shared/api-types.ts` con `SharedIdResponse` y `SharedApiErrorResponse`.
+- [ ] **T-FRONT-081** 🔴 Reemplazar uso de `IdResponse` (de `sw42.utils.ts`) por `SharedIdResponse` en todo el front.
+
+---
+
 ## Notas
 
 - Antes de implementar cualquiera, revisar `contract.md` §16 (pendientes de contrato)
@@ -481,6 +544,9 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · `[~]` en curso · 🔴 alta · 🟡 m
   `FieldResponse`, etc.).
 - Todos los dominios documentados ya tienen carpeta en `specs/domains/`. Los nuevos ítems de
   este backlog generan/extienden sus `use-cases/requirements/design/tasks` al activarse.
+- **Frontend API Sync (ARCH-011):** Al trabajar en cualquier dominio front, verificar que
+  los tipos `*.types.ts` coincidan con `contract.md` y los services usen los paths correctos.
+  El dominio `tasks` sirve como ejemplo/piloto del patrón.
 - Verificar compilaración antes de marcar como hecho:
   - Back: `./gradlew.bat build -x test`
   - Front: `npm run build` y `npx tsc -p tsconfig.app.json --noEmit`

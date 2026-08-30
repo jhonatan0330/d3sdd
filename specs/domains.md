@@ -5,33 +5,32 @@ back `d3brain`). Refleja el avance de documentación SDD y del manual de usuario
 
 Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 
-| Dominio | Paquete | Descripción | use-cases back | use-cases front | contract | User-guide | Estado global |
-|---------|---------|-------------|:--------------:|:---------------:|:--------:|:----------:|:-------------:|
-| [**authentication**](#authentication) | `d3.authentication` | Login, Google, checkToken, cambio/recuperación clave, logout | ✅ | — | ✅ | ✅ (login) | 🔧 |
-| [**documents**](#documents) | `d3.document_execution`, `d3.document_transition`, `d3.document_transaction` | Expedientes/pedidos: guardar, consultar, listar, changeState, upload, plantillas | ✅ | — | ✅ | ✅ | 🔧 |
-| [**tasks**](#tasks) | `d3.task` | Crear/asignar tareas (`TaskRest`) | ✅ | — | ✅ | ✅ | 🔧 |
-| [**accounting**](#accounting) | `d3.accounting_voucher`, `d3.accounting_plan`, `d3.accounting_api` | Comprobantes y plan contable (`VoucherController`, `PlanAccountingController`) | ✅ | — | ✅ | ✅ | ✅ |
-| [**massive**](#massive) | `d3.massiveload` | Carga masiva de documentos (`MassiveRest`) | ✅ | — | ✅ | ✅ | ✅ |
-| [**notifications**](#notifications) | `d3.notification` | Centro de notificaciones (`NotificationController`) | ✅ | — | ✅ | ✅ | 🔧 |
-| [**config-forms**](#config-forms) | `d3.property`, `d3.configuration_file`, `d3.process_form` | Org, procesos, plantillas, servidores (`PropertyController`,`ConfigurationController`) | ✅ | — | ✅ | ✅ | 🔧 |
-| [**document-transition**](#document-transition) | `d3.document_transition`, `d3.document_execution` | Cambios de estado de documentos (`APIController`,`TemplateController`) | ✅ | — | ✅ | ✅ | ✅ |
-| [**persons**](#persons) | `d3.logisticpymes` | Módulo de personas/usuarios (`UserController`) | ✅ | — | ✅ | ✅ | ✅ |
-| [**authorization**](#authorization) | `d3.authorization`, `d3.authentication` | Perfil/autorización/roles/2FA (`UserController` roles) | ✅ | — | ✅ | ✅ | ✅ |
-| [**api-external**](#api-external) | `d3.api` | API pública `/api/*` (login/get/send/report) | — (transversal) | — | ✅ | — | ✅ |
-| [**fe**](#fe) | `d3.fe` | Facturación electrónica DIAN (`FEController`) | ✅ | — | ✅ | ⏳ | ✅ |
-| [**upload**](#upload) | `d3.upload` | Subida/servido de archivos (`FileController`) | ✅ | — | ✅ | ⏳ | ✅ |
-| [**webservice**](#webservice) | `d3.webservice` | Web services externos (`WebServiceController`) | ✅ | — | ✅ | ⏳ | ✅ |
-| [**process-designer**](#process-designer) | `d3.process_designer` | Diseñador de procesos (`ProcessDesignerController`) | ✅ | — | ✅ | ⏳ | ✅ |
-| [**multitenancy**](#multitenancy) | `d3.multitenancy` | Tenants / multi-tenant (`d3.multitenancy`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**inventory**](#inventory) | `d3.inventory` | Inventario de productos (`d3.inventory`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**money**](#money) | `d3.money` | Cuentas/movimientos/turnos (`d3.money`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**tariff**](#tariff) | `d3.tariff` | Tarifas/tarifarios (`d3.tariff`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**report**](#report) | `d3.report` | Reportes Jasper (`d3.report`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**mail**](#mail) | `d3.mail` | Correo/plantillas (`d3.mail`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**homologate**](#homologate) | `d3.homologate` | Homologación (`d3.homologate`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**document-transaction**](#document-transaction) | `d3.document_transaction` | Log de transacciones (`d3.document_transaction`) | ✅ | — | 🔧 | ⏳ | ✅ |
-| [**assistant**](#assistant) | — (front-only) | Asistente de comandos de la SPA (`@doc`, `/módulo`, F9) — **front-only** | — | ✅ | — (reusa documents) | ✅ | 🔧 |
-| [**consumption-units**](#consumption-units) | `d3.consumption_units` | Saldo de unidades de consumo, incremento diario, compra MB/GB, descuento por cargas | ⏳ | — | ⏳ | ⏳ | ⏳ |
+| Dominio | Descripción | use-cases back | use-cases front | contract | User-guide | Estado global |
+|---------|-------------|:--------------:|:---------------:|:--------:|:----------:|:-------------:|
+| [**authentication**](#authentication) | Login, Google, checkToken, cambio/recuperación clave, logout | ✅ | — | ✅ | ✅ (login) | 🔧 |
+| [**document**](#document) | Expedientes/pedidos: guardar, consultar, listar, changeState, upload, plantillas, transición, log transacciones | ✅ | — | ✅ | ✅ | 🔧 |
+| [**tasks**](#tasks) | Crear/asignar tareas (`TaskRest`) | ✅ | — | ✅ | ✅ | 🔧 |
+| [**accounting**](#accounting) | Comprobantes y plan contable (`VoucherController`, `PlanAccountingController`) | ✅ | — | ✅ | ✅ | ✅ |
+| [**massiveload**](#massiveload) | Carga masiva de documentos (`MassiveController`) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [**notification**](#notification) | Centro de notificaciones (`NotificationController`) | ✅ | — | ✅ | ✅ | 🔧 |
+| [**configuration**](#configuration) | Configuración de instancia, propiedades, formularios dinámicos, homologación | ✅ | — | ✅ | ✅ | 🔧 |
+| [**users**](#users) | Módulo de usuarios/personas (`UserController`) | ✅ | — | ✅ | ✅ | ✅ |
+| [**authorization**](#authorization) | Perfil/autorización/roles/2FA (`UserController` roles) | ✅ | — | ✅ | ✅ | ✅ |
+| [**api-external**](#api-external) | API pública `/api/*` (login/get/send/report) | — (transversal) | — | ✅ | — | ✅ |
+| [**fe**](#fe) | Facturación electrónica DIAN (`FEController`) | ✅ | — | ✅ | ⏳ | ✅ |
+| [**upload**](#upload) | Subida/servido de archivos (`FileController`) | ✅ | — | ✅ | ⏳ | ✅ |
+| [**webservice**](#webservice) | Web services externos (`WebServiceController`) | ✅ | — | ✅ | ⏳ | ✅ |
+| [**process**](#process) | Diseñador de procesos (`ProcessDesignerController`) | ✅ | — | ✅ | ⏳ | ✅ |
+| [**multitenancy**](#multitenancy) | Tenants / multi-tenant | ✅ | — | 🔧 | ⏳ | ✅ |
+| [**inventory**](#inventory) | Inventario de productos | ✅ | — | 🔧 | ⏳ | ✅ |
+| [**money**](#money) | Cuentas/movimientos/turnos | ✅ | — | 🔧 | ⏳ | ✅ |
+| [**tariff**](#tariff) | Tarifas/tarifarios | ✅ | — | 🔧 | ⏳ | ✅ |
+| [**report**](#report) | Reportes Jasper | ✅ | — | 🔧 | ⏳ | ✅ |
+| [**mail**](#mail) | Correo/plantillas | ✅ | — | 🔧 | ⏳ | ✅ |
+| [**assistant**](#assistant) | Asistente de comandos de la SPA (`@doc`, `/módulo`, F9) — **front-only** | — | ✅ | — (reusa document) | ✅ | 🔧 |
+| [**consumption-units**](#consumption-units) | Saldo de unidades de consumo, incremento diario, compra MB/GB, descuento por cargas | ⏳ | — | ⏳ | ⏳ | ⏳ |
+| [**shared**](#shared) | Objetos transversales: DTOs, servicios utilitarios, interceptores, componentes reutilizables | ✅ | ✅ | — | — | ✅ |
+| [**layout**](#layout) | Shell de la interfaz: header, sidebar, footer, navegación, dashboard — **front-only** | — | ✅ | — | ✅ | ✅ |
 
 ## Detalle por dominio
 
@@ -41,10 +40,11 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - User-guide: `docs/user-guide/login.md`.
 - Pendiente: logout remoto, refresh token, Google en SPA (ver backlog).
 
-### documents 🔧
-- Specs: `specs/domains/documents/` (use-cases, specs).
+### document 🔧
+- Specs: `specs/domains/document/` (use-cases, specs).
 - Contract: endpoints `/rest/*`, `/document/*`, `/template/*` documentados en `contract.md`.
 - User-guide: `docs/user-guide/documents.md`.
+- Incluye: documentos/expedientes, transición de estado y log de transacciones (antes en `documents`, `document-transition`, `document-transaction`).
 - Pendiente: migrar token en body de `/document/getDocument`/`saveDocument` a header
   (T-DOC-012); auditoría de cambios de estado (DOC-NEW-002).
 
@@ -58,28 +58,24 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - Contract: endpoints agregados en `contract.md`.
 - User-guide: `docs/user-guide/accounting.md`.
 
-### massive ✅
-- Specs: `specs/domains/massive/` (use-cases, specs).
+### massiveload ✅
+- Specs: `specs/domains/massiveload/` (use-cases, specs).
 - Contract: endpoints agregados en `contract.md`.
 - User-guide: `docs/user-guide/massive-notifications.md`.
 
-### notifications 🔧
-- Specs: `specs/domains/notifications/` (use-cases, specs).
+### notification 🔧
+- Specs: `specs/domains/notification/` (use-cases, specs).
 - Contract: endpoints agregados en `contract.md`.
 - User-guide: `docs/user-guide/massive-notifications.md`.
 
-### config-forms 🔧
-- Specs: `specs/domains/config-forms/` (use-cases, specs).
+### configuration 🔧
+- Specs: `specs/domains/configuration/` (use-cases, specs).
 - Contract: endpoints agregados en `contract.md`.
 - User-guide: `docs/user-guide/config-persons.md`.
+- Incluye: configuración de instancia, propiedades, formularios dinámicos y homologación (antes en `config-forms` y `homologate`).
 
-### document-transition ✅
-- Specs: `specs/domains/document-transition/` (use-cases, specs).
-- Contract: endpoints agregados en `contract.md`.
-- User-guide: `docs/user-guide/auth-transition.md`.
-
-### persons ✅
-- Specs: `specs/domains/persons/` (use-cases, specs).
+### users ✅
+- Specs: `specs/domains/users/` (use-cases, specs).
 - Contract: endpoints agregados en `contract.md`.
 - User-guide: `docs/user-guide/config-persons.md`.
 
@@ -107,8 +103,8 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - Contract: endpoints en `contract.md`.
 - Pendiente: user-guide.
 
-### process-designer ✅
-- Specs: `specs/domains/process-designer/` (use-cases, specs).
+### process ✅
+- Specs: `specs/domains/process/` (use-cases, specs).
 - Contract: endpoints en `contract.md`.
 - Pendiente: user-guide.
 
@@ -119,7 +115,7 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 
 ### inventory ✅
 - Specs: `specs/domains/inventory/` (use-cases, specs).
-- Contract: servicio interno (consumido por `documents`, `accounting`).
+- Contract: servicio interno (consumido por `document`, `accounting`).
 - Pendiente: user-guide.
 
 ### money ✅
@@ -139,22 +135,12 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 
 ### mail ✅
 - Specs: `specs/domains/mail/` (use-cases, specs).
-- Contract: servicio interno (consumido por `notifications`).
-- Pendiente: user-guide.
-
-### homologate ✅
-- Specs: `specs/domains/homologate/` (use-cases, specs).
-- Contract: servicio interno (consumido por `accounting`, `tariff`).
-- Pendiente: user-guide.
-
-### document-transaction ✅
-- Specs: `specs/domains/document-transaction/` (use-cases, specs).
-- Contract: servicio interno (consumido por `documents`, `document-transition`).
+- Contract: servicio interno (consumido por `notification`).
 - Pendiente: user-guide.
 
 ### assistant 🔧 (front-only)
 - Specs: `specs/domains/assistant/` (use-cases, specs).
-- Contract: **no tiene backend propio**; reutiliza `documents` (`POST /document/getDocuments`) y el caché de `TemplateService` (`GET /template/getTemplates/{profile}`).
+- Contract: **no tiene backend propio**; reutiliza `document` (`POST /document/getDocuments`) y el caché de `TemplateService` (`GET /template/getTemplates/{profile}`).
 - User-guide: `docs/user-guide/assistant.md`.
 - Nota: el asistente **no es una IA**; es un buscador/navegador de comandos (`@`, `/`).
 - Cambio en curso: `MatDialog` → panel lateral derecho (ver `specs.md` D1, `backlog.md` T-ASSISTANT-006).
@@ -164,13 +150,25 @@ Leyenda: ✅ completo · 🔧 en curso · ⏳ pendiente · — no aplica
 - Contract: pendiente de documentar en `contract.md`.
 - Pendiente: user-guide.
 
+### shared ✅
+- Specs: `specs/domains/shared/` (specs).
+- No tiene endpoints REST; objetos transversales.
+- Front: `src/app/shared/` — componentes, servicios, interceptors, guards.
+- Backend: `d3.shared/` — DTOs, servicios utilitarios, configuración base.
+
+### layout ✅ (front-only)
+- Specs: `specs/domains/layout/` (specs).
+- **Front-only**: no tiene backend propio.
+- Front: `src/app/layout/` — shell, sidebar, dashboard, navegación.
+- Reutiliza endpoints de `document`, `configuration` y `notification` para datos del dashboard.
+
 ## Cuenta total de avance
 
-- Dominios con spec completa: **25** (todos documentados).
-- Dominios con use-cases back: **24** (todos excepto `consumption-units`).
-- Dominios con use-cases front: **1** (`assistant`).
+- Dominios con spec completa: **23** (todos documentados).
+- Dominios con use-cases back: **22** (todos excepto `consumption-units`).
+- Dominios con use-cases front: **2** (`assistant`, `massiveload`).
 - Dominios con contrato en `contract.md`: todos documentados.
 - API externa formalizada: ✅ (`openapi.yaml`).
-- Secciones de user-guide: **12** (index, login, navigation, documents, tasks, accounting,
-  massive-notifications, config-persons, auth-transition, assistant).
+- Secciones de user-guide: **12** (index, login, navigation, document, tasks, accounting,
+  massiveload, configuration, auth-transition, assistant).
 - Backlog consolidado: ver `specs/backlog.md` (tasks + nuevos casos de uso).

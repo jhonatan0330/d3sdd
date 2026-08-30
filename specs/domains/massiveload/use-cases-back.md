@@ -1,6 +1,6 @@
 # Casos de uso — Carga Masiva (MAS) (BACKEND)
 
-Dominio: `massive`. Paquete `d3.massiveload`. Contrato: §9.
+Dominio: `massiveload`. Paquete `d3.massiveload`. Contrato: §9.
 
 > Capa backend (d3brain). Contratos/endpoints aquí. Los pasos de UI van en
 > `use-cases-front.md`.
@@ -53,7 +53,7 @@ DTOs: `MassiveMasterRequest`, `MassiveMasterDTO`, `MassiveItemDTO`, `MasivaItemR
 3. Devuelve la `url` del archivo.
 
 ### Contrato
-- Endpoint: `POST massiveload/template` (❑ por crear — backlog MAS-NEW-002)
+- Endpoint: `POST massiveload/template` (por crear — backlog MAS-NEW-002)
   request: `{ templateId, format }` · response: `{ url }` (luego servida por `GET /files/...`)
 - Auth: `Authorization`.
 

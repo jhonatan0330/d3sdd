@@ -5,7 +5,7 @@ info:
     Contrato formal compartido entre d3_front (Angular) y d3brain (Spring Boot).
     Fuente de verdad: specs/contract.md.
     Base URL resuelta en runtime por el cliente (ver conf.xml / location.origin).
-  version: "2.0.3"
+  version: "2.1.0"
   contact:
     name: D3
 
@@ -15,13 +15,13 @@ servers:
     variables:
       host:
         default: backend
-  - url: https://{host}/main
-    description: API interna SPA (auth/login)
+  - url: https://{host}/document
+    description: API interna SPA (auth + documentos)
     variables:
       host:
         default: backend
   - url: https://{host}
-    description: Base SPA (rest/document/template/user)
+    description: Base SPA (template/user/task/account)
     variables:
       host:
         default: backend
@@ -542,7 +542,7 @@ paths:
         '200':
           description: PING
 
-  /autenticarUsuarioAutenticacion:
+  /main/autenticarUsuarioAutenticacion:
     post:
       tags: [auth-internal]
       summary: Login de la SPA (usuario/clave)
@@ -590,7 +590,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /googleAuthenticate:
+  /main/googleAuthenticate:
     post:
       tags: [auth-internal]
       summary: Login con Google Sign-In
@@ -611,7 +611,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /checkToken:
+  /main/checkToken:
     post:
       tags: [auth-internal]
       summary: Validar token de sesión actual
@@ -637,7 +637,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /cambiarClave:
+  /main/cambiarClave:
     post:
       tags: [auth-internal]
       summary: Cambiar clave (propia u otro usuario)
@@ -656,7 +656,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /solicitarNuevaClave:
+  /main/solicitarNuevaClave:
     post:
       tags: [auth-internal]
       summary: Recuperar / solicitar nueva clave
@@ -683,7 +683,7 @@ paths:
                 type: object
                 additionalProperties: true
 
-  /obtenerPrincipalOrganizacion:
+  /main/obtenerPrincipalOrganizacion:
     get:
       tags: [auth-internal]
       summary: Obtener organización principal (carousel, módulos)
@@ -698,7 +698,7 @@ paths:
                 type: object
                 additionalProperties: true
 
-  /rest/guardarDocumento:
+  /api/guardarDocumento:
     post:
       tags: [documents]
       summary: Crear o editar documento
@@ -720,7 +720,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /rest/consultarDocumento:
+  /api/consultarDocumento:
     post:
       tags: [documents]
       summary: Documento completo por llaveTabla
@@ -740,7 +740,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PedidoVentaDTO'
 
-  /rest/listarDocumentos:
+  /api/listarDocumentos:
     post:
       tags: [documents]
       summary: Listar documentos con filtros
@@ -762,7 +762,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/PedidoVentaDTO'
 
-  /rest/changeState:
+  /api/changeState:
     post:
       tags: [documents]
       summary: Cambiar estado del documento
@@ -782,7 +782,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PedidoVentaAjusteDTO'
 
-  /rest/consultarDatosBase:
+  /api/consultarDatosBase:
     post:
       tags: [documents]
       summary: Datos base/dependentes de campo
@@ -802,7 +802,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
 
-  /rest/upload:
+  /api/upload:
     post:
       tags: [documents]
       summary: Subir archivo adjunto
@@ -1186,7 +1186,7 @@ paths:
             application/json:
               schema: { type: object }
 
-  /property/{type}/{field}:
+  /api/config/property/{type}/{field}:
     get:
       tags: [config-forms]
       summary: Propiedades por tipo/campo
@@ -1209,7 +1209,7 @@ paths:
                 type: array
                 items: { type: object }
 
-  /configuration/export:
+  /api/config/configuration/export:
     get:
       tags: [config-forms]
       summary: Exportar configuración
@@ -1285,7 +1285,7 @@ paths:
         '200':
           description: 2FA validado
 
-  /rest/changeState:
+  /api/changeState:
     post:
       tags: [document-transition]
       summary: Cambiar estado de documento
@@ -1442,7 +1442,7 @@ paths:
             application/json:
               schema: { type: object }
 
-  /process_designer/copy:
+  /template/designer/copy:
     post:
       tags: [process-designer]
       summary: Copiar proceso
