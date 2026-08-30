@@ -13,15 +13,15 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · `[~]` en curso · 🔴 alta · 🟡 m
 > Ver [`ARCHITECTURE.md`](ARCHITECTURE.md) para los estándares actuales.
 
 - [x] **ARCH-001** 🔴 Documentar estándar de nombres de paquetes `d3.*` en `ARCHITECTURE.md` (ya realizado, verificar cobertura). Ver [ARCH-001](backlog-strategies/ARCH-001-package-rename.md).
-- [ ] **ARCH-002** 🔴 Definir estándar de endpoints REST: métodos HTTP, formato de rutas, convenciones de Response.
-- [ ] **ARCH-003** 🔴 Estandarizar formato de DTOs: sufijos (`DTO`, `FilterDTO`, `Request`), campos comunes (`llaveTabla`, `estado`, `tenant`).
+- [x] **ARCH-002** 🔴 Definir estándar de endpoints REST: métodos HTTP, formato de rutas, convenciones de Response.
+- [x] **ARCH-003** 🔴 Estandarizar formato de DTOs: sufijos (`DTO`, `FilterDTO`, `Request`), campos comunes (`llaveTabla`, `estado`, `tenant`).
 - [ ] **ARCH-004** 🔴 Formalizar convención de multi-tenancy: tenant resuelto desde sesión, nunca en request.
-- [ ] **ARCH-005** 🟡 Definir estándar de manejo de errores: formato `SharedApiErrorResponse`, códigos comunes.
-- [ ] **ARCH-006** 🟡 Documentar convenciones MyBatis: nombres de tablas (`<prefijo>_<nombre>`), PKs (`_llave`), tenants (`_tenant`).
-- [ ] **ARCH-007** 🟡 Formalizar proceso de cambios en el contrato API (breaking vs non-breaking).
+- [x] **ARCH-005** 🟡 Definir estándar de manejo de errores: formato `SharedApiErrorResponse`, códigos comunes.
+- [x] **ARCH-006** 🟡 Documentar convenciones MyBatis: nombres de tablas (`<prefijo>_<nombre>`), PKs (`_llave`), tenants (`_tenant`).
+- [x] **ARCH-007** 🟡 Formalizar proceso de cambios en el contrato API (breaking vs non-breaking).
 - [ ] **ARCH-008** 🟢 Definir estándar de autenticación: JWT claims mínimos, API key, header `Authorization`.
 - [ ] **ARCH-009** 🟢 Documentar convenciones de frontend Angular: estructura de servicios, componentes, models.
-- [ ] **ARCH-010** 🟢 Estandarizar formato de fechas: `yyyy-MM-dd@HH:mm:ss.SSSZ`, timezone `America/Bogota`.
+- [x] **ARCH-010** 🟢 Estandarizar formato de fechas: `yyyy-MM-dd@HH:mm:ss.SSSZ`, timezone `America/Bogota`.
 - [x] **ARCH-011** 🔴 Sincronización frontend ↔ contract.md: tipos TypeScript espejo exacto del contract.
   Ver [ADR](backlog-strategies/ARCH-011-frontend-api-sync.md).
 
@@ -489,34 +489,34 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · `[~]` en curso · 🔴 alta · 🟡 m
 
 - [x] **T-FRONT-001** 🔴 Crear `task/task.types.ts` con `TaskDTO` y `TaskRequest` del contract §7.
 - [x] **T-FRONT-002** 🔴 Actualizar `task/tasks.service.ts`: usar `TaskDTO`/`TaskRequest`, paths correctos, `SharedIdResponse`.
-- [ ] **T-FRONT-003** 🔴 Verificar componente `tasks.component.ts` usa los nuevos tipos.
-- [ ] **T-FRONT-004** 🔴 Corregir `getTaskById`: path `/task/{id}?id={key}` (query param).
-- [ ] **T-FRONT-005** 🔴 Corregir `createTask`: enviar `TaskRequest` con campo `user`.
+- [x] **T-FRONT-003** 🔴 Verificar componente `tasks.component.ts` usa los nuevos tipos.
+- [x] **T-FRONT-004** 🔴 Corregir `getTaskById`: path `/task/{id}?id={key}` (query param).
+- [x] **T-FRONT-005** 🔴 Corregir `createTask`: enviar `TaskRequest` con campo `user`.
 
 #### Notifications
 
-- [ ] **T-FRONT-010** 🟡 Crear/actualizar `notification/notification.types.ts` con `ActividadDTO` del contract §10.
-- [ ] **T-FRONT-011** 🟡 Verificar `notification/notification.service.ts` usa paths del contract.
+- [x] **T-FRONT-010** 🟡 Crear/actualizar `notification/notification.types.ts` con `ActividadDTO` del contract §10.
+- [x] **T-FRONT-011** 🟡 Verificar `notification/notification.service.ts` usa paths del contract.
 
 #### Accounting
 
-- [ ] **T-FRONT-020** 🟡 Crear `accounting/accounting.types.ts` con `Voucher`, `VoucherDTO`, `AccountDTO`, `CatalogDTO`, `ResultMapDTO` del contract §8.
-- [ ] **T-FRONT-021** 🟡 Verificar `accounting/accounting.service.ts` usa paths del contract.
+- [x] **T-FRONT-020** 🟡 Crear `accounting/accounting.types.ts` con `Voucher`, `VoucherDTO`, `AccountDTO`, `CatalogDTO`, `ResultMapDTO` del contract §8.
+- [x] **T-FRONT-021** 🟡 Verificar `accounting/accounting.service.ts` usa paths del contract.
 
 #### Users / Persons
 
-- [ ] **T-FRONT-030** 🟡 Crear `users/users.types.ts` con `UsuarioDTO`, `UsuarioFilterDTO` del contract §12.
-- [ ] **T-FRONT-031** 🟡 Verificar `users/contact.services.ts` usa paths del contract.
+- [x] **T-FRONT-030** 🟡 Crear `users/users.types.ts` con `UsuarioDTO`, `UsuarioFilterDTO` del contract §12.
+- [x] **T-FRONT-031** 🟡 Verificar `users/contact.services.ts` usa paths del contract.
 
 #### Authorization
 
-- [ ] **T-FRONT-040** 🟢 Crear `authorization/authorization.types.ts` con `RolAccesoDTO`, `UsuarioAutenticacionDTO` del contract §13.
-- [ ] **T-FRONT-041** 🟢 Verificar endpoints de roles/2FA en `authentication/login.service.ts`.
+- [x] **T-FRONT-040** 🟢 Crear `authorization/authorization.types.ts` con `RolAccesoDTO`, `UsuarioAutenticacionDTO` del contract §13.
+- [x] **T-FRONT-041** 🟢 Verificar endpoints de roles/2FA en `authentication/login.service.ts`.
 
 #### Documents
 
-- [ ] **T-FRONT-050** 🟢 Crear `document/document.types.ts` con `PedidoVentaDTO`, `PedidoVentaFilterDTO`, `PedidoVentaAjusteDTO` del contract §6.
-- [ ] **T-FRONT-051** 🟢 Verificar `document/service/api.service.ts` usa paths del contract (no legacy).
+- [x] **T-FRONT-050** 🟢 Crear `document/document.types.ts` con `PedidoVentaDTO`, `PedidoVentaFilterDTO`, `PedidoVentaAjusteDTO` del contract §6.
+- [x] **T-FRONT-051** 🟢 Verificar `document/service/api.service.ts` usa paths del contract (no legacy).
 - [ ] **T-FRONT-052** 🟢 Migrar llamadas a `/document/getDocument` → `/document/api/consultarDocumento`.
 - [ ] **T-FRONT-053** 🟢 Migrar llamadas a `/document/saveDocument` → `/document/api/guardarDocumento`.
 
@@ -532,8 +532,8 @@ Leyenda: `[ ]` pendiente · `[x]` hecho · `[~]` en curso · 🔴 alta · 🟡 m
 
 #### Shared
 
-- [ ] **T-FRONT-080** 🔴 Crear `shared/api-types.ts` con `SharedIdResponse` y `SharedApiErrorResponse`.
-- [ ] **T-FRONT-081** 🔴 Reemplazar uso de `IdResponse` (de `sw42.utils.ts`) por `SharedIdResponse` en todo el front.
+- [x] **T-FRONT-080** 🔴 Crear `shared/api-types.ts` con `SharedIdResponse` y `SharedApiErrorResponse`.
+- [x] **T-FRONT-081** 🔴 Reemplazar uso de `IdResponse` (de `sw42.utils.ts`) por `SharedIdResponse` en todo el front.
 
 ---
 
