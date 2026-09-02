@@ -18,6 +18,8 @@ debe respetar estos lineamientos.
 10. [Seguridad](#10-seguridad)
 11. [Sincronización frontend ↔ contract](#11-sincronización-frontend--contract)
 12. [Tareas de arquitectura pendientes](#12-tareas-de-arquitectura-pendientes)
+13. [Estrategia de testing y CI](#13-estrategia-de-testing-y-ci)
+14. [Formato de fechas](#14-formato-de-fechas)
 
 ---
 
@@ -1020,7 +1022,62 @@ Ver [**ARCHITECTURE** en `backlog.md`](backlog.md#architecture) para ítems pend
 
 ---
 
-## 13. Formato de fechas
+## 13. Estrategia de testing y CI
+
+**Decisión de arquitectura (ARCH-012):** Por el momento, el ecosistema D3 **no ejecuta
+pruebas unitarias ni de integración** en el pipeline de CI. La verificación se basa
+únicamente en la compilación (`build`).
+
+### Estado actual
+
+| Proyecto | CI Workflow | Verificación en CI |
+|----------|-------------|---------------------|
+| Back (`d3brain`) | `gradlew.bat build -x test` | Compilación Java |
+| Front (`d3_front`) | `jhonatan0330/d3_front` (GitHub Actions) | Compilación Angular + TypeCheck |
+
+> **Regla vigente:** El compilador es la única verificación automática. No se ejecutan
+> tests en ningún proyecto.
+
+### Plan de retiro de tests del frontend
+
+El repositorio `jhonatan0330/d3_front` tiene un workflow de CI en GitHub Actions que
+actualmente puede incluir pasos de testing. Se establece el siguiente plan para
+retirarlos del front:
+
+| # | Acción | Estado |
+|---|--------|--------|
+| 1 | Identificar los tests existentes en el front (`*.spec.ts`, configuración de Karma/Jest) | Completado |
+| 2 | Revisar el workflow de CI en `.github/workflows/` y documentar los pasos actuales | Completado |
+| 3 | Eliminar o deshabilitar el paso de `ng test` / `npm test` en el workflow | Completado |
+| 4 | Eliminar archivos de configuración de testing (karma.conf.js, setup-jest.ts, etc.) si no se usarán | Completado |
+| 5 | Eliminar archivos `*.spec.ts` huérfanos (que no aportan valor verificable) | Completado |
+| 6 | Actualizar `README.md` y `package.json` removiendo scripts de testing | Completado |
+| 7 | Verificar que `npm run build` y `npx tsc -p tsconfig.app.json --noEmit` sigan pasando | Completado |
+| 8 | Documentar en esta sección que el front ya no tiene tests | Completado |
+
+### Justificación
+
+- El backend ya usa `./gradlew.bat build -x test` como verificación estándar.
+- El frontend debe alinearse con la misma filosofía: **compilación como verificación**.
+- Los tests unitarios actuales no cubren suficiente valor justificando el costo de
+  mantenimiento del pipeline de CI con tests.
+- Si en el futuro se requieren tests, se re-introducirán con un framework moderno
+  (Vitest o Jest) y cobertura mínima definida.
+
+### Comandos de verificación (sin tests)
+
+```bash
+# Backend
+./gradlew.bat build -x test
+
+# Frontend
+npm run build
+npx tsc -p tsconfig.app.json --noEmit
+```
+
+---
+
+## 14. Formato de fechas
 
 **Decisión de arquitectura (ARCH-010):** Todas las fechas en comunicación HTTP (DTOs)
 del ecosistema D3 deben seguir este formato estándar.

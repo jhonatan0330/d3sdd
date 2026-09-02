@@ -5,52 +5,75 @@ info:
     Contrato formal compartido entre d3_front (Angular) y d3brain (Spring Boot).
     Fuente de verdad: specs/contract.md.
     Base URL resuelta en runtime por el cliente (ver conf.xml / location.origin).
-  version: "2.1.0"
+    NOTA: La mayoría de endpoints internos están bajo /document/* (DocumentController).
+  version: "2.2.0"
   contact:
     name: D3
 
 servers:
-  - url: https://{host}/api
-    description: API externa (requiere x-api-key)
-    variables:
-      host:
-        default: backend
-  - url: https://{host}/document
-    description: API interna SPA (auth + documentos)
-    variables:
-      host:
-        default: backend
   - url: https://{host}
-    description: Base SPA (template/user/task/account)
+    description: Backend principal (API + SPA + documentos)
     variables:
       host:
         default: backend
 
 tags:
   - name: auth-internal
-    description: Autenticación de la SPA (main)
+    description: Autenticación de la SPA (main) — bajo /document/main/*
   - name: api-external
-    description: API pública /api
-
-security:
-  - bearerAuth: []
-  - apiKeyAuth: []
+    description: API pública bajo /api/*
+  - name: documents
+    description: Gestión de documentos (expedientes/pedidos) — bajo /document/*
+  - name: document-transition
+    description: Transiciones de estado de documentos
+  - name: tasks
+    description: Gestión de tareas personales — bajo /task/*
+  - name: accounting
+    description: Comprobantes y plan contable — bajo /acc/*
+  - name: massive
+    description: Carga masiva de datos — bajo /massiveload/*
+  - name: notifications
+    description: Actividades y notificaciones — bajo /notification/*
+  - name: config-forms
+    description: Configuración de formularios y propiedades — bajo /api/config/*
+  - name: persons
+    description: Gestión de usuarios — bajo /user/*
+  - name: authorization
+    description: Roles y doble factor de autenticación
+  - name: fe
+    description: Facturación electrónica (DIAN) — bajo /fe/*
+  - name: upload
+    description: Almacenamiento y servicio de archivos — bajo /files/*
+  - name: process-designer
+    description: Diseñador de procesos/plantillas — bajo /template/*
 
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: Token de sesión (opaco hoy, JWT HS256 en migración). También aceptado en campo securityToken del body.
+      description: >
+        Token de sesión opaco (UUID hex de 32 chars) o JWT HS256.
+        Viaja en header Authorization. También aceptado como campo
+        securityToken en el body de algunos DTOs (BasicFilterDTO).
     apiKeyAuth:
       type: apiKey
       in: header
       name: x-api-key
-      description: API key obligatoria en todos los endpoints /api/*
+      description: API key obligatoria en endpoints /api/* (ApiController)
+    tenantHeader:
+      type: apiKey
+      in: header
+      name: X-Tenant-ID
+      description: >
+        ID del tenant requerido por TenantFilter (OncePerRequestFilter).
+        Obligatorio en TODOS los endpoints. Rechaza con 404 si falta o es inválido.
 
   schemas:
+    # ==================== SHARED ====================
     SharedIdResponse:
       type: object
+      description: Respuesta genérica con ID de entidad operada
       properties:
         id:
           type: string
@@ -64,11 +87,95 @@ components:
         messages:
           type: array
           items:
-            type: object
-            description: DocumentMessage (ver dominio documentos)
+            $ref: '#/components/schemas/DocumentMessage'
+
+    DocumentMessage:
+      type: object
+      description: Mensaje asociado a un documento
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+
+    BasicDTO:
+      type: object
+      description: >
+        Clase base abstracta (d3.shared.domain.BasicDTO).
+        Propiedades heredadas por PedidoVentaDTO, ActividadDTO, etc.
+      properties:
+        llaveTabla:
+          type: string
+          description: ID principal de la entidad
+        estado:
+          type: string
+          description: Estado de la entidad (A=Activa, I=Inactiva, C=Cerrada)
+
+    BasicFilterDTO:
+      type: object
+      description: >
+        Clase base abstracta para filtros (d3.shared.domain.BasicFilterDTO).
+        Propiedades heredadas por PedidoVentaFilterDTO, etc.
+      properties:
+        paginacionRegistroInicial:
+          type: integer
+          description: Registro inicial para paginación (offset)
+        paginacionRegistroFinal:
+          type: integer
+          description: Registro final para paginación (limit)
+        filtroParametro:
+          type: string
+        llaveTabla:
+          type: string
+        estado:
+          type: string
+        securityToken:
+          type: string
+          description: Token de sesión (alternativo al header Authorization)
+
+    SharedDataObject:
+      type: object
+      description: >
+        Clase base abstracta (d3.shared.domain.SharedDataObject).
+        Propiedades heredadas por TaskDTO, VoucherDTO, MasivaItemRequest.
+      properties:
+        key:
+          type: string
+        state:
+          type: string
+
+    SharedApiErrorResponse:
+      type: object
+      description: >
+        Error response del backend (d3.shared.domain.SharedApiErrorResponse).
+        NOTA: status se serializa como string (HttpStatus.name()), no como integer.
+      properties:
+        status:
+          type: string
+          description: "Nombre del HTTP status (ej: INTERNAL_SERVER_ERROR)"
+        error_code:
+          type: string
+        message:
+          type: string
+        detail:
+          type: string
+
+    # ==================== API EXTERNAL (d3.api.domain) ====================
+    LoginRequest:
+      type: object
+      description: Login de API (d3.api.domain.LoginRequest)
+      properties:
+        user:
+          type: string
+        password:
+          type: string
+      required: [user, password]
 
     FieldRequest:
       type: object
+      description: Campo de documento (d3.api.domain.FieldRequest)
       properties:
         field:
           type: string
@@ -83,14 +190,24 @@ components:
 
     ProductRequest:
       type: object
-      description: Definir campos en openapi (pendiente de inspección)
+      description: Producto asociado a un campo (d3.api.domain.ProductRequest)
       properties:
-        product:
+        totalQuantity:
+          type: number
+          format: double
+        totalValue:
+          type: number
+          format: double
+        code:
           type: string
-      additionalProperties: true
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldRequest'
 
     DocumentRequest:
       type: object
+      description: Documento para enviar (d3.api.domain.DocumentRequest)
       properties:
         template:
           type: string
@@ -108,9 +225,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FieldRequest'
+      required: [template]
 
     DocumentFilterRequest:
       type: object
+      description: Filtro de documentos (d3.api.domain.DocumentFilterRequest)
       properties:
         template:
           type: string
@@ -128,8 +247,10 @@ components:
           type: string
         page:
           type: integer
+          default: 0
         size:
           type: integer
+          default: 0
         creationDateMin:
           type: string
           format: date-time
@@ -147,8 +268,29 @@ components:
           items:
             $ref: '#/components/schemas/FieldRequest'
 
+    DocumentFilterWithLoginRequest:
+      type: object
+      description: Login + filtro (d3.api.domain.DocumentFilterWithLoginRequest)
+      properties:
+        login:
+          $ref: '#/components/schemas/LoginRequest'
+        document:
+          $ref: '#/components/schemas/DocumentFilterRequest'
+      required: [login, document]
+
+    DocumentWithLoginRequest:
+      type: object
+      description: Login + documento (d3.api.domain.DocumentWithLoginRequest)
+      properties:
+        login:
+          $ref: '#/components/schemas/LoginRequest'
+        document:
+          $ref: '#/components/schemas/DocumentRequest'
+      required: [login, document]
+
     DocumentResponse:
       type: object
+      description: Respuesta de documento (d3.api.domain.DocumentResponse)
       properties:
         template:
           type: string
@@ -168,16 +310,28 @@ components:
             $ref: '#/components/schemas/FieldResponse'
         fullValue:
           type: number
+          format: double
         pendingValue:
           type: number
+          format: double
+      required: [template, id]
 
     FieldResponse:
       type: object
-      description: Definir campos en openapi (pendiente de inspección)
-      additionalProperties: true
+      description: Campo de respuesta (d3.api.domain.FieldResponse)
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        internalId:
+          type: string
+        value:
+          type: string
 
     ReportRequest:
       type: object
+      description: Solicitud de reporte (d3.api.domain.ReportRequest)
       properties:
         template:
           type: string
@@ -189,14 +343,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ReportParameterRequest'
+      required: [template, code]
 
     ReportParameterRequest:
       type: object
-      description: Definir campos en openapi (pendiente de inspección)
-      additionalProperties: true
+      description: Parámetro de reporte (d3.api.domain.ReportParameterRequest)
+      properties:
+        parameter:
+          type: string
+        value:
+          type: string
 
     DataFieldRequest:
       type: object
+      description: Solicitud de datos de campo (d3.api.domain.DataFieldRequest)
       properties:
         template:
           type: string
@@ -206,22 +366,38 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FieldRequest'
+      required: [template, code]
 
     DataFieldResponse:
       type: object
-      description: Definir campos en openapi (pendiente de inspección)
-      additionalProperties: true
-
-    LoginRequest:
-      type: object
+      description: Respuesta de datos de campo (d3.api.domain.DataFieldResponse)
       properties:
-        user:
+        field:
           type: string
-        password:
+        value:
           type: string
+        internalId:
+          type: string
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentResponse'
+
+    DataFieldWithLoginRequest:
+      type: object
+      description: Login + datos de campo (d3.api.domain.DataFieldWithLoginRequest)
+      properties:
+        login:
+          $ref: '#/components/schemas/LoginRequest'
+        field:
+          $ref: '#/components/schemas/DataFieldRequest'
+      required: [login, field]
 
     GoogleAuthRequest:
       type: object
+      description: >
+        Solicitud de autenticación Google (d3.authentication.domain — en desarrollo).
+        NO existe endpoint implementado en Spring.
       properties:
         idToken:
           type: string
@@ -229,117 +405,801 @@ components:
         urlServer:
           type: string
 
-    ApiError:
+    # ==================== AUTH (d3.authentication.domain) ====================
+    AutenticacionRequest:
       type: object
+      description: >
+        Filtro de autenticación (d3.authentication.domain.UsuarioAutenticacionFilterDTO).
+        NOTA: El controller recibe este DTO, no un DTO simplificado.
       properties:
-        status:
-          type: integer
-          format: int32
-        error_code:
+        usuario:
           type: string
-        message:
+        sesion:
           type: string
-        detail:
+        clave:
+          type: string
+        claveAnterior:
+          type: string
+          description: Fecha de compilación (control de versión cliente)
+        securityToken:
+          type: string
+        ip:
           type: string
 
+    AutenticacionResponse:
+      type: object
+      description: >
+        Respuesta de autenticación (d3.authentication.domain.UsuarioAutenticacionDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            usuario:
+              type: string
+            sesion:
+              type: string
+            clave:
+              type: string
+            usuarioNombre:
+              type: string
+            claveAnterior:
+              type: string
+            tableroControl:
+              type: integer
+            usuarioDTO:
+              $ref: '#/components/schemas/UsuarioDTO'
+            organizacion:
+              type: object
+              additionalProperties: true
+            mensaje:
+              type: string
+            token:
+              type: string
+            fechaMaxima:
+              type: string
+              format: date-time
+            ip:
+              type: string
+            autorizacionCrea:
+              type: string
+            autorizacionElimina:
+              type: string
+            fechaCreacion:
+              type: string
+              format: date-time
+
+    CheckTokenRequest:
+      type: object
+      description: Request para checkToken
+      properties:
+        securityToken:
+          type: string
+        claveAnterior:
+          type: string
+
+    SolicitarClaveRequest:
+      type: object
+      description: Solicitud de nueva clave (d3.authentication.domain.UsuarioAutenticacionDTO simplificado)
+      properties:
+        usuario:
+          type: string
+        sesion:
+          type: string
+        clave:
+          type: string
+        ip:
+          type: string
+
+    # ==================== DOCUMENTS (d3.document.domain) ====================
     PedidoVentaDTO:
       type: object
-      description: Documento/expediente (d3.document_execution.domain)
-      additionalProperties: true
+      description: >
+        Documento/expediente (d3.document.domain.PedidoVentaDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            fechaRegistro:
+              type: string
+              format: date-time
+            fecha:
+              type: string
+              format: date-time
+            funcionario:
+              type: string
+            funcionarioNombre:
+              type: string
+            plantilla:
+              type: string
+            consecutivo:
+              type: number
+              format: double
+              description: BigDecimal en Java
+            nombre:
+              type: string
+            imagen:
+              type: string
+            descripcion:
+              type: string
+            estadoExpediente:
+              type: string
+            textoFiltro:
+              type: string
+            estadoNombre:
+              type: string
+            historico:
+              type: integer
+            transaccion:
+              type: string
+            dinero:
+              type: object
+              additionalProperties: true
+              description: PedidoVentaDineroDTO (pendiente de definición completa)
+            caracteristicas:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+              description: Lista de PedidoVentaCaracteristicaDTO
+            campoOrigen:
+              type: string
+            campoPropiedad:
+              type: string
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentMessage'
+
+    PedidoVentaFilterDTO:
+      type: object
+      description: >
+        Filtro de documentos (d3.document.domain.PedidoVentaFilterDTO).
+        Hereda de BasicFilterDTO.
+      allOf:
+        - $ref: '#/components/schemas/BasicFilterDTO'
+        - type: object
+          properties:
+            fechaRegistroMin:
+              type: string
+              format: date-time
+            fechaRegistroMax:
+              type: string
+              format: date-time
+            fechaMin:
+              type: string
+              format: date-time
+            fechaMax:
+              type: string
+              format: date-time
+            funcionario:
+              type: string
+            funcionarioNombre:
+              type: string
+            proceso:
+              type: string
+            plantilla:
+              type: string
+            nombre:
+              type: string
+            imagen:
+              type: string
+            descripcion:
+              type: string
+            estadoExpediente:
+              type: string
+            textoFiltro:
+              type: string
+            estadoNombre:
+              type: string
+            historico:
+              type: integer
+            transaccion:
+              type: string
+            caracteristicas:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            campoOrigen:
+              type: string
+            campoPropiedad:
+              type: string
+            filtersByFields:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+              description: Lista de PedidoVentaCaracteristicaFilterDTO
+
+    PedidoVentaAjusteDTO:
+      type: object
+      description: >
+        Transición de estado (d3.document.domain.PedidoVentaAjusteDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            documento:
+              type: string
+            fecha:
+              type: string
+              format: date-time
+            estadoInicial:
+              type: string
+            estadoFinal:
+              type: string
+            motivo:
+              type: string
+            responsable:
+              type: string
+
+    PedidoVentaCaracteristicaFilterDTO:
+      type: object
+      description: >
+        Filtro de características (d3.document.domain.PedidoVentaCaracteristicaFilterDTO).
+        Hereda de BasicFilterDTO.
+      allOf:
+        - $ref: '#/components/schemas/BasicFilterDTO'
+        - type: object
+          properties:
+            documento:
+              type: string
+            campo:
+              type: string
+            valorText:
+              type: string
+            valorFechaMin:
+              type: string
+              format: date-time
+            valorFechaMax:
+              type: string
+              format: date-time
+            valorOpcion:
+              type: string
+            valorAuxiliar:
+              type: string
+            valorNumeroMin:
+              type: number
+              format: double
+            valorNumeroMax:
+              type: number
+              format: double
+            dependientes:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            expedientes:
+              type: array
+              items:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+            mensaje:
+              type: string
+            transaccionRegistro:
+              type: string
+            transaccionInactivo:
+              type: string
+
+    # ==================== TASKS (d3.task.domain) ====================
+    TaskDTO:
+      type: object
+      description: >
+        Tarea (d3.task.domain.TaskDTO).
+        Hereda de SharedDataObject (key, state).
+      allOf:
+        - $ref: '#/components/schemas/SharedDataObject'
+        - type: object
+          properties:
+            user:
+              type: string
+            title:
+              type: string
+            notes:
+              type: string
+            completed:
+              type: string
+              format: date-time
+            dueDate:
+              type: string
+              format: date-time
+            priority:
+              type: integer
+            order:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+
+    TaskRequest:
+      type: object
+      description: Solicitud de creación/actualización de tarea (d3.task.domain.TaskRequest)
+      properties:
+        key:
+          type: string
+        user:
+          type: string
+        title:
+          type: string
+        notes:
+          type: string
+        completed:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+        priority:
+          type: integer
+        order:
+          type: integer
+      required: [title]
+
+    # ==================== ACCOUNTING (d3.accounting.domain) ====================
+    VoucherDTO:
+      type: object
+      description: >
+        Comprobante contable (d3.accounting.domain.VoucherDTO).
+        Hereda de SharedDataObject (key, state).
+      allOf:
+        - $ref: '#/components/schemas/SharedDataObject'
+        - type: object
+          properties:
+            catalog:
+              type: string
+            catalogCode:
+              type: string
+            code:
+              type: string
+            type:
+              type: string
+            concept:
+              type: string
+            factDate:
+              type: string
+              format: date-time
+            value:
+              type: number
+              format: double
+            document:
+              type: string
+            mainDocument:
+              type: string
+            deleteDate:
+              type: string
+              format: date-time
+            creationDate:
+              type: string
+              format: date-time
+
+    Voucher:
+      type: object
+      description: >
+        Comprobante contable completo (d3.accounting.domain.Voucher).
+        header + records.
+      properties:
+        header:
+          $ref: '#/components/schemas/VoucherDTO'
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/VoucherLine'
+
+    VoucherLine:
+      type: object
+      description: Línea de comprobante (d3.accounting.domain.VoucherLine)
+      properties:
+        line:
+          type: object
+          additionalProperties: true
+          description: AccountRecordDTO
+        references:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            description: AccountRecordAuxiliarDTO
+
+    VoucherRequest:
+      type: object
+      description: >
+        Solicitud de comprobante API (d3.accounting.domain.VoucherRequest).
+        Para endpoint /acc/api/voucher.
+      properties:
+        catalog:
+          type: string
+        concept:
+          type: string
+        factDate:
+          type: string
+          format: date-time
+        value:
+          type: number
+          format: double
+        document:
+          type: string
+        mainDocument:
+          type: string
+        type:
+          type: string
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            description: VoucherLineRequest
+
+    VoucherPrepareRequest:
+      type: object
+      description: Solicitud de preparación de comprobante (d3.accounting.domain.VoucherPrepareRequest)
+      properties:
+        llaveTabla:
+          type: string
+        plantilla:
+          type: string
+
+    VoucherRangeRequest:
+      type: object
+      description: Solicitud de rango de comprobantes (d3.accounting.domain.VoucherRangeRequest)
+      properties:
+        llaveTabla:
+          type: string
+        plantilla:
+          type: string
+
+    ResultMapDTO:
+      type: object
+      description: Resultado de mapa/saldo (d3.accounting.domain.ResultMapDTO)
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+
+    AccountDTO:
+      type: object
+      description: Cuenta contable (d3.accounting.domain.AccountDTO)
+      properties:
+        key:
+          type: string
+        nombre:
+          type: string
+        codigo:
+          type: string
+        tipo:
+          type: string
+
+    CatalogDTO:
+      type: object
+      description: Catálogo contable (d3.accounting.domain.CatalogDTO)
+      properties:
+        key:
+          type: string
+        nombre:
+          type: string
+        codigo:
+          type: string
+
+    # ==================== NOTIFICATIONS (d3.notification.domain) ====================
+    ActividadDTO:
+      type: object
+      description: >
+        Actividad/notificación (d3.notification.domain.ActividadDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            responsable:
+              type: string
+            responsableIdentificacion:
+              type: string
+            responsableNombre:
+              type: string
+            documento:
+              type: string
+            documentoDTO:
+              $ref: '#/components/schemas/PedidoVentaDTO'
+            responsableFoto:
+              type: string
+            comentario:
+              type: string
+            fechaArrancar:
+              type: string
+              format: date-time
+            fechaRegistro:
+              type: string
+              format: date-time
+            usuarioRegistro:
+              type: string
+            fechaInactivo:
+              type: string
+              format: date-time
+            fechaTerminar:
+              type: string
+              format: date-time
+            usuarioInactivo:
+              type: string
+            fechaLeido:
+              type: string
+              format: date-time
+
+    # ==================== USERS (d3.users.domain) ====================
+    UsuarioDTO:
+      type: object
+      description: >
+        Usuario (d3.users.domain.UsuarioDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            identificacion:
+              type: string
+            nombre:
+              type: string
+            imagen:
+              type: string
+            rol:
+              type: string
+            documento:
+              type: string
+            productos:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            usuarioFiltroDependiente:
+              type: string
+            correo:
+              type: string
+            usuarioRol:
+              type: string
+            telefono:
+              type: string
+
+    UsuarioFilterDTO:
+      type: object
+      description: Filtro de usuarios (d3.users.domain.UsuarioFilterDTO)
+      properties:
+        nombre:
+          type: string
+        email:
+          type: string
+        rol:
+          type: string
+        estado:
+          type: string
+        documento:
+          type: string
+
+    RolAccesoDTO:
+      type: object
+      description: >
+        Rol de acceso (d3.authorization.domain.RolAccesoDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            plantilla:
+              type: string
+            nombre:
+              type: string
+            codigo:
+              type: string
+            imagen:
+              type: string
+
+    # ==================== AUTHORIZATION ====================
+    DfaRequest:
+      type: object
+      description: Solicitud de doble factor (d3.authentication.domain — campos de UsuarioAutenticacionDTO)
+      properties:
+        usuario:
+          type: string
+        token:
+          type: string
+      required: [usuario, token]
+
+    # ==================== FE (d3.fe.domain) ====================
+    FEResponse:
+      type: object
+      description: >
+        Respuesta de facturación electrónica (d3.fe.domain.FEResponse).
+        Se usa para sign, signNE, signWithZip, signNEWithZip y generateCU.
+        Todos los campos son nullable (@JsonInclude(NON_NULL)).
+      properties:
+        result:
+          type: string
+          description: "Código de resultado ('200' = éxito, '400' = error)"
+        error:
+          type: string
+        cufe:
+          type: string
+        xmlUrl:
+          type: string
+        zipUrl:
+          type: string
+        xml:
+          type: string
+        zipBase64:
+          type: string
+        digestValue:
+          type: string
+        signatureValue:
+          type: string
+        x509Certificate:
+          type: string
+
+    # ==================== MASSIVE LOAD (d3.massiveload.domain) ====================
+    MassiveMasterRequest:
+      type: object
+      description: >
+        Carga masiva master (d3.massiveload.domain.MassiveMasterRequest).
+        NOTA: estado es READ_ONLY (@JsonProperty(access = READ_ONLY)).
+      properties:
+        key:
+          type: string
+        archivo:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+        mensaje:
+          type: string
+        plantilla:
+          type: string
+        progreso:
+          type: string
+        usuario:
+          type: string
+        estado:
+          type: string
+          readOnly: true
+          description: Solo lectura
+
+    MasivaItemRequest:
+      type: object
+      description: >
+        Ítem de carga masiva (d3.massiveload.domain.MasivaItemRequest).
+        Hereda de SharedDataObject (key, state).
+      allOf:
+        - $ref: '#/components/schemas/SharedDataObject'
+        - type: object
+          properties:
+            carga:
+              type: string
+            documento:
+              type: string
+            fechaSerializacion:
+              type: string
+              format: date-time
+            fechaSincronizacion:
+              type: string
+              format: date-time
+            modelo:
+              type: string
+            nombre:
+              type: string
+            progreso:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            createdUser:
+              type: string
+            updatedAt:
+              type: string
+              format: date-time
+            updatedUser:
+              type: string
+            state:
+              type: string
+              readOnly: true
+
+    # ==================== CONFIG (d3.configuration.domain) ====================
+    PropiedadDTO:
+      type: object
+      description: >
+        Propiedad de configuración (d3.configuration.domain.PropiedadDTO).
+        Hereda de BasicDTO (llaveTabla, estado).
+      allOf:
+        - $ref: '#/components/schemas/BasicDTO'
+        - type: object
+          properties:
+            propiedadValor:
+              type: string
+            tipo:
+              type: string
+            nombre:
+              type: string
+            key:
+              type: string
+            campo:
+              type: string
+            valor:
+              type: string
+            texto:
+              type: string
+            rol:
+              type: string
+            rolNombre:
+              type: string
+            rolExcluyente:
+              type: string
+            rolExcluyenteNombre:
+              type: string
+            fechaInicial:
+              type: string
+              format: date-time
+            fechaFinal:
+              type: string
+              format: date-time
+            usuario:
+              type: string
+            usuarioNombre:
+              type: string
+            usuarioExcluyente:
+              type: string
+            usuarioExcluyenteNombre:
+              type: string
+            motivo:
+              type: string
+            bloqueo:
+              type: string
+            fechaDefinicion:
+              type: string
+              format: date-time
+            fechaEliminacion:
+              type: string
+              format: date-time
+            usuarioCreacion:
+              type: string
+            usuarioEliminacion:
+              type: string
+            relaciones:
+              type: integer
+
+    # ==================== TEMPLATES (d3.process.domain) ====================
+    DocumentoPlantillaDTO:
+      type: object
+      description: Plantilla de documento (d3.process.domain.DocumentoPlantillaDTO)
       properties:
         llaveTabla:
           type: string
         nombre:
           type: string
-        plantilla:
-          type: string
         descripcion:
           type: string
-        estadoExpediente:
+        estado:
           type: string
-        estadoNombre:
-          type: string
-        messages:
-          type: array
-          items:
-            type: object
-            additionalProperties: true
 
-    PedidoVentaFilterDTO:
+    DocumentoRelacionGestorDTO:
       type: object
-      additionalProperties: true
+      description: Traza de relaciones (d3.document.domain.DocumentoRelacionGestorDTO)
       properties:
         llaveTabla:
           type: string
-        plantilla:
+        documento:
           type: string
-        securityToken:
+        gestionador:
+          type: string
+        transaccion:
           type: string
 
-    PedidoVentaAjusteDTO:
+    # ==================== WEBSERVICE ====================
+    WebServiceCopyRequest:
       type: object
-      description: Transición de estado (d3.document_transition.domain)
-      additionalProperties: true
-
-    PedidoVentaCaracteristicaFilterDTO:
-      type: object
-      additionalProperties: true
+      description: >
+        El endpoint /template/designer/copy recibe @RequestParam processId.
+        NO es un body con dos campos.
       properties:
-        campo:
+        processId:
           type: string
-        securityToken:
-          type: string
-
-    TaskDTO:
-      type: object
-      description: Tarea (com.task.task.domain)
-      additionalProperties: true
-      properties:
-        key:
-          type: string
-        user:
-          type: string
-        title:
-          type: string
-        notes:
-          type: string
-        completed:
-          type: string
-          format: date-time
-        dueDate:
-          type: string
-          format: date-time
-        priority:
-          type: integer
-        order:
-          type: integer
-        createdAt:
-          type: string
-          format: date-time
-
-    TaskRequest:
-      type: object
-      description: Solicitud de creación/actualización de tarea
-      additionalProperties: true
-      properties:
-        key:
-          type: string
-        user:
-          type: string
-        title:
-          type: string
-        notes:
-          type: string
-        completed:
-          type: string
-          format: date-time
-        dueDate:
-          type: string
-          format: date-time
-        priority:
-          type: integer
-        order:
-          type: integer
+      required: [processId]
 
   responses:
     Unauthorized:
@@ -347,21 +1207,24 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiError'
+            $ref: '#/components/schemas/SharedApiErrorResponse'
     BadRequest:
       description: Error de validación / regla de negocio
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiError'
+            $ref: '#/components/schemas/SharedApiErrorResponse'
 
 paths:
-  /login:
+  # ==================== API EXTERNAL (ApiController: /api/*) ====================
+  /api/login:
     post:
+      operationId: loginApi
       tags: [api-external]
       summary: Login de API (user/password)
       security:
         - apiKeyAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -378,13 +1241,17 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /get:
+  /api/get:
     post:
+      operationId: getDocumentsApi
       tags: [api-external]
       summary: Listar documentos por filtro
+      description: >
+        Requiere AMBOS headers: x-api-key (apiKeyAuth) Y Authorization (bearerAuth).
       security:
         - apiKeyAuth: []
-        - bearerAuth: []
+          bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -403,13 +1270,16 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /send:
+  /api/send:
     post:
+      operationId: sendDocumentApi
       tags: [api-external]
       summary: Crear o actualizar documento
+      description: Requiere AMBOS headers x-api-key Y Authorization.
       security:
         - apiKeyAuth: []
-        - bearerAuth: []
+          bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -426,13 +1296,16 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /getReport:
+  /api/getReport:
     post:
+      operationId: getReportApi
       tags: [api-external]
       summary: Generar reporte
+      description:  Requiere AMBOS headers x-api-key Y Authorization.
       security:
         - apiKeyAuth: []
-        - bearerAuth: []
+          bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -447,23 +1320,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/SharedIdResponse'
 
-  /getWithLogin:
+  /api/getWithLogin:
     post:
+      operationId: getWithLoginApi
       tags: [api-external]
       summary: Login implícito + obtener documentos
       security:
         - apiKeyAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                login:
-                  $ref: '#/components/schemas/LoginRequest'
-                document:
-                  $ref: '#/components/schemas/DocumentFilterRequest'
+              $ref: '#/components/schemas/DocumentFilterWithLoginRequest'
       responses:
         '200':
           description: Lista de documentos
@@ -474,23 +1344,20 @@ paths:
                 items:
                   $ref: '#/components/schemas/DocumentResponse'
 
-  /getDataFieldWithLogin:
+  /api/getDataFieldWithLogin:
     post:
+      operationId: getDataFieldWithLoginApi
       tags: [api-external]
       summary: Login implícito + datos de campo
       security:
         - apiKeyAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                login:
-                  $ref: '#/components/schemas/LoginRequest'
-                field:
-                  $ref: '#/components/schemas/DataFieldRequest'
+              $ref: '#/components/schemas/DataFieldWithLoginRequest'
       responses:
         '200':
           description: Datos de campo
@@ -499,23 +1366,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/DataFieldResponse'
 
-  /sendWithLogin:
+  /api/sendWithLogin:
     post:
+      operationId: sendWithLoginApi
       tags: [api-external]
       summary: Login implícito + enviar documento
       security:
         - apiKeyAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                login:
-                  $ref: '#/components/schemas/LoginRequest'
-                document:
-                  $ref: '#/components/schemas/DocumentRequest'
+              $ref: '#/components/schemas/DocumentWithLoginRequest'
       responses:
         '200':
           description: Resultado
@@ -524,125 +1388,137 @@ paths:
               schema:
                 $ref: '#/components/schemas/SharedIdResponse'
 
-  /ok:
+  /api/ok:
     get:
+      operationId: healthcheckApi
       tags: [api-external]
       summary: Healthcheck autenticado por API key
       security:
         - apiKeyAuth: []
+        - tenantHeader: []
       responses:
         '200':
           description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
 
-  /ping:
+  /api/ping:
     get:
+      operationId: pingApi
       tags: [api-external]
-      summary: Healthcheck público
+      summary: Healthcheck público (sin autenticación)
       responses:
         '200':
           description: PING
+          content:
+            text/plain:
+              schema:
+                type: string
 
-  /main/autenticarUsuarioAutenticacion:
+  # ==================== DOCUMENT (DocumentController: /document/*) ====================
+
+  # --- MAIN (auth-internal) ---
+  /document/main/autenticarUsuarioAutenticacion:
     post:
+      operationId: autenticarUsuario
       tags: [auth-internal]
       summary: Login de la SPA (usuario/clave)
+      security:
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                sesion:
-                  type: string
-                  description: usuario
-                clave:
-                  type: string
-                  description: clave
-                claveAnterior:
-                  type: string
-                  description: fecha de compilación (control de versión cliente)
-                securityToken:
-                  type: string
-                usuario:
-                  type: string
-                  description: llaveTabla (re-login con token)
+              $ref: '#/components/schemas/AutenticacionRequest'
       responses:
         '200':
           description: Autenticación exitosa
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                  usuarioDTO:
-                    type: object
-                    additionalProperties: true
-                  organizacion:
-                    type: object
-                    additionalProperties: true
-                  mensaje:
-                    type: string
-                  fechaMaxima:
-                    type: string
+                $ref: '#/components/schemas/AutenticacionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /main/googleAuthenticate:
+  /document/main/checkToken:
     post:
-      tags: [auth-internal]
-      summary: Login con Google Sign-In
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GoogleAuthRequest'
-      responses:
-        '200':
-          description: Autenticación exitosa (mismo esquema que login normal)
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /main/checkToken:
-    post:
+      operationId: checkToken
       tags: [auth-internal]
       summary: Validar token de sesión actual
+      security:
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                securityToken:
-                  type: string
-                claveAnterior:
-                  type: string
+              $ref: '#/components/schemas/CheckTokenRequest'
       responses:
         '200':
           description: Token válido, devuelve perfil
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
+                $ref: '#/components/schemas/AutenticacionResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /main/cambiarClave:
+  /document/main/cambiarClave:
     post:
+      operationId: cambiarClave
       tags: [auth-internal]
       summary: Cambiar clave (propia u otro usuario)
       security:
         - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutenticacionResponse'
+      responses:
+        '200':
+          description: Clave actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutenticacionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /document/main/solicitarNuevaClave:
+    post:
+      operationId: solicitarNuevaClave
+      tags: [auth-internal]
+      summary: Recuperar / solicitar nueva clave
+      security:
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitarClaveRequest'
+      responses:
+        '200':
+          description: Solicitud procesada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /document/main/cambiarClaveOtherSystem:
+    post:
+      operationId: cambiarClaveOtherSystem
+      tags: [auth-internal]
+      summary: Cambiar clave de usuario en otro sistema/organización
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -650,82 +1526,114 @@ paths:
             schema:
               type: object
               additionalProperties: true
+              description: UsuarioOrganizacionDTO
       responses:
         '200':
           description: Clave actualizada
-        '400':
-          $ref: '#/components/responses/BadRequest'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
 
-  /main/solicitarNuevaClave:
-    post:
+  /document/main/checkSession:
+    get:
+      operationId: checkSession
       tags: [auth-internal]
-      summary: Recuperar / solicitar nueva clave
+      summary: Verificar sesión actual
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      responses:
+        '200':
+          description: Sesión válida
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                description: UsuarioSesionDTO
+
+  /document/main/consultaUsuarioDocumentoPlantilla:
+    post:
+      operationId: consultaUsuarioDocumentoPlantilla
+      tags: [auth-internal]
+      summary: Consultar plantillas de documento del usuario
+      security:
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                usuarioDTO:
-                  type: object
-                  properties:
-                    identificacion:
-                      type: string
-                    correo:
-                      type: string
+              additionalProperties: true
+              description: DocumentoPlantillaFilterDTO
       responses:
         '200':
-          description: Solicitud procesada
+          description: Lista de plantillas
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentoPlantillaDTO'
 
-  /main/obtenerPrincipalOrganizacion:
-    get:
-      tags: [auth-internal]
-      summary: Obtener organización principal (carousel, módulos)
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Organización
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-
-  /api/guardarDocumento:
+  /document/main/listarUsuarioPedidoVenta:
     post:
-      tags: [documents]
-      summary: Crear o editar documento
+      operationId: listarUsuarioPedidoVenta
+      tags: [auth-internal]
+      summary: Listar documentos del usuario
       security:
-        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PedidoVentaDTO'
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
       responses:
         '200':
-          description: Documento resumido
+          description: Lista de documentos
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PedidoVentaDTO'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoVentaDTO'
 
-  /api/consultarDocumento:
+  # --- DOCUMENTS ---
+  /document/getDocuments:
     post:
+      operationId: getDocumentsHeader
       tags: [documents]
-      summary: Documento completo por llaveTabla
+      summary: Listar documentos (header)
       security:
         - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/getDocument:
+    post:
+      operationId: getDocument
+      tags: [documents]
+      summary: Consultar documento por llaveTabla
+      security:
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -740,74 +1648,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/PedidoVentaDTO'
 
-  /api/listarDocumentos:
+  /document/saveDocument:
     post:
+      operationId: saveDocument
       tags: [documents]
-      summary: Listar documentos con filtros
+      summary: Guardar documento (crea o actualiza)
       security:
-        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+              $ref: '#/components/schemas/PedidoVentaDTO'
       responses:
         '200':
-          description: Lista
+          description: Documento guardado
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PedidoVentaDTO'
+                $ref: '#/components/schemas/PedidoVentaDTO'
 
-  /api/changeState:
+  /document/upload:
     post:
+      operationId: uploadFileDocument
       tags: [documents]
-      summary: Cambiar estado del documento
+      summary: Subir archivo (retorna URL como String)
       security:
         - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PedidoVentaAjusteDTO'
-      responses:
-        '200':
-          description: Ajuste guardado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PedidoVentaAjusteDTO'
-
-  /api/consultarDatosBase:
-    post:
-      tags: [documents]
-      summary: Datos base/dependentes de campo
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
-      responses:
-        '200':
-          description: Datos base
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
-
-  /api/upload:
-    post:
-      tags: [documents]
-      summary: Subir archivo adjunto
-      security:
-        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -818,42 +1687,48 @@ paths:
                 file:
                   type: string
                   format: binary
+              required: [file]
+            encoding:
+              file:
+                contentType: application/octet-stream
       responses:
         '200':
-          description: URL del archivo (en message)
+          description: URL del archivo
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/ApiError'
+                type: string
 
-  /document/getDocuments:
+  /document/readActivity:
     post:
+      operationId: readActivityDocument
       tags: [documents]
-      summary: Listar documentos (header)
+      summary: Marcar actividad como leída
       security:
         - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+              $ref: '#/components/schemas/ActividadDTO'
       responses:
         '200':
-          description: Lista
+          description: Actividad actualizada
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PedidoVentaDTO'
+                $ref: '#/components/schemas/ActividadDTO'
 
   /document/getInventory/{id}:
     get:
+      operationId: getInventory
       tags: [documents]
       summary: Inventario por producto
       security:
         - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: id
           in: path
@@ -870,13 +1745,357 @@ paths:
                 items:
                   type: object
                   additionalProperties: true
+                  description: ProductoInventarioDTO
 
+  # --- DOCUMENT API (bajo /document/api/*) ---
+  /document/api/logOut:
+    post:
+      operationId: logOut
+      tags: [documents]
+      summary: Cerrar sesión
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutenticacionResponse'
+      responses:
+        '200':
+          description: Sesión cerrada
+
+  /document/api/consultarDocumento:
+    post:
+      operationId: apiConsultarDocumento
+      tags: [documents]
+      summary: Documento completo por llaveTabla (API interna)
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Documento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/api/validateBeforeNew:
+    post:
+      operationId: validateBeforeNew
+      tags: [documents]
+      summary: Validar antes de crear nuevo documento
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Documento validado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/api/guardarDocumento:
+    post:
+      operationId: apiGuardarDocumento
+      tags: [documents]
+      summary: Crear o editar documento (API interna)
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: non-duplicate
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Token de sesión para evitar duplicados
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaDTO'
+      responses:
+        '200':
+          description: Documento resumido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/api/saveByMassive:
+    post:
+      operationId: saveByMassive
+      tags: [documents]
+      summary: Guardar documento por carga masiva
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaDTO'
+      responses:
+        '200':
+          description: Documento guardado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/api/consultarUsuario:
+    post:
+      operationId: consultarUsuario
+      tags: [documents]
+      summary: Consultar usuario único
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioFilterDTO'
+      responses:
+        '200':
+          description: Usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDTO'
+
+  /document/api/consultarDatosBase:
+    post:
+      operationId: consultarDatosBase
+      tags: [documents]
+      summary: Datos base/dependentes de campo
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
+      responses:
+        '200':
+          description: Datos base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
+
+  /document/api/listarDocumentos:
+    post:
+      operationId: apiListarDocumentos
+      tags: [documents]
+      summary: Listar documentos con filtros (API interna)
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaFilterDTO'
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoVentaDTO'
+
+  /document/api/obtenerCampos:
+    post:
+      operationId: obtenerCampos
+      tags: [documents]
+      summary: Obtener campos de una plantilla
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: DocumentoPlantillaDTO
+      responses:
+        '200':
+          description: Plantilla con campos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoPlantillaDTO'
+
+  /document/api/upload:
+    post:
+      operationId: uploadFileApi
+      tags: [documents]
+      summary: Subir archivo adjunto (API interna)
+      description: >
+        Retorna SharedApiErrorResponse con la URL del archivo en el campo message.
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+            encoding:
+              file:
+                contentType: application/octet-stream
+      responses:
+        '200':
+          description: URL del archivo (en campo message)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedApiErrorResponse'
+
+  /document/api/uploadResponseString:
+    post:
+      operationId: uploadFileConfig
+      tags: [documents]
+      summary: Subir archivo de configuración (retorna URL como String)
+      security:
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        '200':
+          description: URL del archivo
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /document/api/changePicture:
+    post:
+      operationId: changePicture
+      tags: [persons]
+      summary: Cambiar imagen de perfil
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDTO'
+
+  /document/api/changeState:
+    post:
+      operationId: changeDocumentState
+      tags: [document-transition]
+      summary: Cambiar estado del documento
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaAjusteDTO'
+      responses:
+        '200':
+          description: Ajuste guardado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaAjusteDTO'
+
+  /document/api/getMessageToProcessField/{property}/{fieldValue}:
+    get:
+      operationId: getMessageToProcessField
+      tags: [documents]
+      summary: Obtener mensaje para procesar campo
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: property
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fieldValue
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mensaje
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  # --- TEMPLATES (TemplateController: /template/*) ---
   /template/getTemplates/{profile}:
     get:
-      tags: [documents]
+      operationId: getTemplates
+      tags: [process-designer]
       summary: Plantillas por perfil (ADMIN/READER/usuario)
       security:
         - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: profile
           in: path
@@ -891,15 +2110,193 @@ paths:
               schema:
                 type: array
                 items:
+                  $ref: '#/components/schemas/DocumentoPlantillaDTO'
+
+  /template/getFields:
+    get:
+      operationId: getFields
+      tags: [process-designer]
+      summary: Obtener campos de una plantilla por ID
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plantilla con campos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoPlantillaDTO'
+
+  /template/getFieldData:
+    post:
+      operationId: getFieldData
+      tags: [process-designer]
+      summary: Consultar datos base de un campo
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
+      responses:
+        '200':
+          description: Datos base
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoVentaCaracteristicaFilterDTO'
+
+  /template/getTrace:
+    post:
+      operationId: getTrace
+      tags: [process-designer]
+      summary: Traza de relaciones del documento
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: DocumentoRelacionGestorFilterDTO
+      responses:
+        '200':
+          description: Traza
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentoRelacionGestorDTO'
+
+  /template/getTraceFields/{documentId}/{transaction}:
+    get:
+      operationId: getTraceFields
+      tags: [process-designer]
+      summary: Campos de traza por documento y transacción
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transaction
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Campos de traza
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
                   type: object
                   additionalProperties: true
 
+  /template/getPropertyRelations:
+    post:
+      operationId: getPropertyRelations
+      tags: [process-designer]
+      summary: Relaciones de una propiedad
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: RelacionInternaFilterDTO
+      responses:
+        '200':
+          description: Relaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /template/validateLoad:
+    post:
+      operationId: validateLoad
+      tags: [process-designer]
+      summary: Validar carga de campo
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: DocumentoPlantillaCaracteristicaFilterDTO
+      responses:
+        '200':
+          description: Resultado de validación
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /template/designer/copy:
+    post:
+      operationId: copyProcess
+      tags: [process-designer]
+      summary: Copiar proceso
+      description: >
+        Recibe processId como @RequestParam (query parameter), no como body.
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: processId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Proceso copiado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  # --- TASKS (TaskController: /task/*) ---
   /task/:
     get:
+      operationId: listTasks
       tags: [tasks]
       summary: Listar tareas del usuario
       security:
         - bearerAuth: []
+        - tenantHeader: []
       responses:
         '200':
           description: Lista de tareas
@@ -912,13 +2309,19 @@ paths:
 
   /task/{id}:
     get:
+      operationId: getTask
       tags: [tasks]
-      summary: Ver tarea por id (id en query param)
+      summary: Ver tarea por id
+      description: >
+        NOTA: El path es /task/{id}. En Spring el controller declara @RequestParam String id
+        en lugar de @PathVariable, lo cual es una inconsistencia conocida del backend.
+        El frontend debe enviar id como query param: /task/{id}?id={key}.
       security:
         - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           schema:
             type: string
@@ -932,10 +2335,12 @@ paths:
 
   /task/create:
     post:
+      operationId: createTask
       tags: [tasks]
       summary: Crear tarea
       security:
         - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -952,10 +2357,12 @@ paths:
 
   /task/update:
     post:
+      operationId: updateTask
       tags: [tasks]
       summary: Actualizar tarea
       security:
         - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
@@ -972,10 +2379,12 @@ paths:
 
   /task/delete/{id}:
     post:
+      operationId: deleteTask
       tags: [tasks]
       summary: Eliminar tarea
       security:
         - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: id
           in: path
@@ -990,16 +2399,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/SharedIdResponse'
 
+  # --- ACCOUNTING (AccountingController: /acc/*) ---
   /acc/voucher/{catalog}:
     get:
+      operationId: listVouchers
       tags: [accounting]
       summary: Listar comprobantes por catálogo
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: catalog
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Lista de comprobantes
@@ -1007,18 +2421,45 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { type: object }
+                items:
+                  $ref: '#/components/schemas/VoucherDTO'
+
+  /acc/voucher/one/{voucherId}:
+    get:
+      operationId: getVoucherById
+      tags: [accounting]
+      summary: Obtener comprobante por ID
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: voucherId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comprobante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voucher'
 
   /acc/voucher/manual:
     post:
+      operationId: createManualVoucher
       tags: [accounting]
       summary: Crear comprobante manual
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/Voucher'
       responses:
         '200':
           description: Comprobante creado
@@ -1027,125 +2468,352 @@ paths:
               schema:
                 $ref: '#/components/schemas/SharedIdResponse'
 
-  /acc/plan/balance/{catalog}:
-    get:
+  /acc/voucher/manual/{voucherId}:
+    delete:
+      operationId: deleteManualVoucher
       tags: [accounting]
-      summary: Saldos del plan contable
-      security: [bearerAuth]
+      summary: Eliminar comprobante manual
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
-        - name: catalog
+        - name: voucherId
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
-          description: Saldos
+          description: Comprobante eliminado
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
 
-  /massiveload/template:
+  /acc/voucher/generate-voucher:
     post:
-      tags: [massive]
-      summary: Descargar plantilla base (xlsx/xml/json)
-      security: [bearerAuth]
+      operationId: generateVoucher
+      tags: [accounting]
+      summary: Generar/recrear comprobante
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                templateId: { type: string }
-                format: { type: string, enum: [xlsx, xml, json] }
+              $ref: '#/components/schemas/VoucherPrepareRequest'
       responses:
         '200':
-          description: URL del archivo generado
+          description: Comprobante generado
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  url: { type: string }
+                $ref: '#/components/schemas/SharedIdResponse'
 
-  /massiveload/upload:
+  /acc/voucher/document:
     post:
-      tags: [massive]
-      summary: Cargar archivo de carga masiva
-      security: [bearerAuth]
+      operationId: getVoucherByDocument
+      tags: [accounting]
+      summary: Obtener comprobante por documento
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/VoucherPrepareRequest'
       responses:
         '200':
-          description: Carga registrada (loadId)
+          description: ID del comprobante
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /acc/voucher/range-clear-voucher:
+    post:
+      operationId: rangeClearVoucher
+      tags: [accounting]
+      summary: Limpiar rango de comprobantes
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoucherRangeRequest'
+      responses:
+        '200':
+          description: Rango limpiado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /acc/voucher/range-create-voucher:
+    post:
+      operationId: rangeCreateVoucher
+      tags: [accounting]
+      summary: Crear rango de comprobantes
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoucherRangeRequest'
+      responses:
+        '200':
+          description: Rango creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedIdResponse'
+
+  /acc/plan/balance/{catalog}:
+    get:
+      operationId: getPlanBalance
+      tags: [accounting]
+      summary: Saldos del plan contable
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: catalog
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Saldos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResultMapDTO'
+
+  /acc/plan/account/{catalog}:
+    get:
+      operationId: getAccounts
+      tags: [accounting]
+      summary: Cuentas contables por catálogo
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: catalog
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filter
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cuentas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountDTO'
+
+  /acc/plan/account/{catalog}/{id}:
+    get:
+      operationId: getAccountById
+      tags: [accounting]
+      summary: Cuenta contable por catálogo e ID
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: catalog
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cuenta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDTO'
+
+  /acc/plan/catalog/{id}:
+    get:
+      operationId: getCatalogById
+      tags: [accounting]
+      summary: Catálogo por ID
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Catálogo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogDTO'
+
+  /acc/plan/catalog:
+    get:
+      operationId: getCatalogs
+      tags: [accounting]
+      summary: Listar catálogos activos
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      responses:
+        '200':
+          description: Catálogos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CatalogDTO'
+
+  # --- MASSIVE LOAD (MassiveController: /massiveload/*) ---
+  /massiveload/upload:
+    post:
+      operationId: uploadMassiveFile
+      tags: [massive]
+      summary: Cargar archivo de carga masiva
+      description: >
+        Recibe file (MultipartFile) y template (RequestParam) como multipart.
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                template:
+                  type: string
+                  description: ID de la plantilla
+              required: [file, template]
+            encoding:
+              file:
+                contentType: application/octet-stream
+      responses:
+        '200':
+          description: Carga registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MassiveMasterRequest'
 
   /massiveload/validate/{loadId}:
     post:
+      operationId: validateMassiveLoad
       tags: [massive]
       summary: Validar carga masiva
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: loadId
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Carga validada
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/MassiveMasterRequest'
 
   /massiveload/execute/{loadId}:
     post:
+      operationId: executeMassiveLoad
       tags: [massive]
       summary: Ejecutar/procesar carga masiva
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: loadId
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Carga ejecutada
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/MassiveMasterRequest'
 
   /massiveload/{loadId}:
     get:
+      operationId: getMassiveLoad
       tags: [massive]
       summary: Obtener carga (detalle/historial)
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: loadId
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Carga
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/MassiveMasterRequest'
 
   /massiveload/{loadId}/items:
     get:
+      operationId: getMassiveLoadItems
       tags: [massive]
       summary: Ítems de la carga
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
         - name: loadId
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Ítems
@@ -1153,13 +2821,18 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { type: object }
+                items:
+                  $ref: '#/components/schemas/MasivaItemRequest'
 
+  # --- NOTIFICATIONS (NotificationController: /notification/*) ---
   /notification/getNotifications:
     get:
+      operationId: getNotifications
       tags: [notifications]
       summary: Listar actividades/notificaciones
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       responses:
         '200':
           description: Actividades
@@ -1167,70 +2840,92 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { type: object }
+                items:
+                  $ref: '#/components/schemas/ActividadDTO'
 
-  /notification/transfer:
+  /notification/readActivity:
     post:
+      operationId: readActivity
       tags: [notifications]
-      summary: Transferir (reasignar) actividad
-      security: [bearerAuth]
+      summary: Marcar actividad como leída
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/ActividadDTO'
+      responses:
+        '200':
+          description: Actividad actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActividadDTO'
+
+  /notification/transfer:
+    post:
+      operationId: transferNotification
+      tags: [notifications]
+      summary: Transferir (reasignar) actividad
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActividadDTO'
       responses:
         '200':
           description: Actividad transferida
           content:
             application/json:
-              schema: { type: object }
-
-  /api/config/property/{type}/{field}:
-    get:
-      tags: [config-forms]
-      summary: Propiedades por tipo/campo
-      security: [bearerAuth]
-      parameters:
-        - name: type
-          in: path
-          required: true
-          schema: { type: string }
-        - name: field
-          in: path
-          required: true
-          schema: { type: string }
-      responses:
-        '200':
-          description: Propiedades
-          content:
-            application/json:
               schema:
-                type: array
-                items: { type: object }
+                $ref: '#/components/schemas/ActividadDTO'
 
-  /api/config/configuration/export:
-    get:
-      tags: [config-forms]
-      summary: Exportar configuración
-      security: [bearerAuth]
-      responses:
-        '200':
-          description: Archivo de configuración
-          content:
-            application/json:
-              schema: { type: object }
-
-  /user/getUsers:
+  /notification/userToTransfer:
     post:
-      tags: [persons]
-      summary: Listar usuarios por filtro/rol
-      security: [bearerAuth]
+      operationId: getUsersToTransfer
+      tags: [notifications]
+      summary: Listar usuarios destino para transferir actividad
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/ActividadDTO'
+      responses:
+        '200':
+          description: Usuarios disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsuarioDTO'
+
+  # --- USERS (UserController: /user/*) ---
+  /user/getUsers:
+    post:
+      operationId: getUsers
+      tags: [persons]
+      summary: Listar usuarios por filtro/rol
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsuarioFilterDTO'
       responses:
         '200':
           description: Usuarios
@@ -1238,30 +2933,61 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { type: object }
+                items:
+                  $ref: '#/components/schemas/UsuarioDTO'
 
-  /user/document/{documentId}:
+  /user/{userId}:
     get:
+      operationId: getUserById
       tags: [persons]
-      summary: Usuario por documento
-      security: [bearerAuth]
+      summary: Obtener usuario por ID
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
-        - name: documentId
+        - name: userId
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
       responses:
         '200':
           description: Usuario
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/UsuarioDTO'
+
+  /user/document/{documentId}:
+    get:
+      operationId: getUserByDocument
+      tags: [persons]
+      summary: Usuario por documento
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDTO'
 
   /user/getRole:
     get:
+      operationId: getRoles
       tags: [authorization]
       summary: Listar roles de acceso
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       responses:
         '200':
           description: Roles
@@ -1269,192 +2995,415 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { type: object }
+                items:
+                  $ref: '#/components/schemas/RolAccesoDTO'
 
-  /user/dfa:
-    post:
+  /user/roles/{userId}:
+    get:
+      operationId: getRolesByUser
       tags: [authorization]
-      summary: Doble factor de autenticación (2FA)
-      security: [bearerAuth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object }
+      summary: Roles asignados a un usuario
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
-          description: 2FA validado
-
-  /api/changeState:
-    post:
-      tags: [document-transition]
-      summary: Cambiar estado de documento
-      security: [bearerAuth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object }
-      responses:
-        '200':
-          description: Estado cambiado
-          content:
-            application/json:
-              schema: { type: object }
-
-  /template/getTrace:
-    post:
-      tags: [document-transition]
-      summary: Traza de relaciones del documento
-      security: [bearerAuth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { type: object }
-      responses:
-        '200':
-          description: Traza
+          description: Roles del usuario
           content:
             application/json:
               schema:
                 type: array
-                items: { type: object }
+                items:
+                  $ref: '#/components/schemas/RolAccesoDTO'
 
-  /fe/sign:
+  /user/dfa:
     post:
-      tags: [fe]
-      summary: Firmar documento (DIAN)
-      security: [bearerAuth]
+      operationId: validateDfa
+      tags: [authorization]
+      summary: Doble factor de autenticación (2FA)
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/DfaRequest'
       responses:
         '200':
-          description: Firmado
+          description: 2FA validado (sin body)
+
+  # --- FE (FEController: /fe/*) ---
+  /fe/sign:
+    post:
+      operationId: signDocument
+      tags: [fe]
+      summary: Firmar documento XML (DIAN)
+      description: >
+        Recibe el XML como @RequestBody String (text/plain o application/xml).
+        Retorna FEResponse con resultado, XML firmado, CUFE, etc.
+        En caso de error, retorna FEResponse con result="400" y error.
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: Contenido XML a firmar
+      responses:
+        '200':
+          description: Resultado de firma
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/FEResponse'
 
   /fe/signWithZip:
     post:
+      operationId: signDocumentWithZip
       tags: [fe]
-      summary: Firmar documento desde ZIP
-      security: [bearerAuth]
+      summary: Firmar documento XML con ZIP
+      description: >
+        A diferencia de lo que se podría asumir, este endpoint recibe
+        @RequestBody String xml (NO multipart). El XML contiene los datos necesarios.
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
-          application/json:
-            schema: { type: object }
+          text/plain:
+            schema:
+              type: string
+              description: Contenido XML a firmar
       responses:
         '200':
-          description: Firmado
+          description: Resultado de firma
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/FEResponse'
 
   /fe/signNE:
     post:
+      operationId: signNote
       tags: [fe]
       summary: Firmar nota electrónica
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
-          application/json:
-            schema: { type: object }
+          text/plain:
+            schema:
+              type: string
       responses:
         '200':
-          description: Firmado
+          description: Resultado de firma
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/FEResponse'
 
   /fe/signNEWithZip:
     post:
+      operationId: signNoteWithZip
       tags: [fe]
-      summary: Firmar nota electrónica desde ZIP
-      security: [bearerAuth]
+      summary: Firmar nota electrónica con ZIP
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
-          application/json:
-            schema: { type: object }
+          text/plain:
+            schema:
+              type: string
       responses:
         '200':
-          description: Firmado
+          description: Resultado de firma
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/FEResponse'
 
   /fe/generateCU:
     post:
+      operationId: generateCU
       tags: [fe]
       summary: Generar CU/CUFE
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
-          application/json:
-            schema: { type: object }
+          text/plain:
+            schema:
+              type: string
+              description: Contenido XML para generar código único
       responses:
         '200':
-          description: Código único
+          description: Código único generado
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/FEResponse'
 
+  # --- FILES (FileController: /files/*) ---
   /files/{visibility}/{type}/{year}/{month}/{day}/{filename}:
     get:
+      operationId: serveFile
       tags: [upload]
       summary: Servir archivo almacenado
-      security: [bearerAuth]
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       parameters:
-        - { name: visibility, in: path, required: true, schema: { type: string } }
-        - { name: type, in: path, required: true, schema: { type: string } }
-        - { name: year, in: path, required: true, schema: { type: string } }
-        - { name: month, in: path, required: true, schema: { type: string } }
-        - { name: day, in: path, required: true, schema: { type: string } }
-        - { name: filename, in: path, required: true, schema: { type: string } }
+        - name: visibility
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Nombre del archivo (puede contener puntos)
       responses:
         '200':
           description: Archivo
           content:
             application/octet-stream:
-              schema: { type: string, format: binary }
+              schema:
+                type: string
+                format: binary
 
-  /webservice/copy:
+  # --- CONFIG (ConfigController: /api/config/*) ---
+  /api/config/property/{type}/{field}:
+    get:
+      operationId: getConfigProperty
+      tags: [config-forms]
+      summary: Propiedades por tipo/campo
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: field
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Propiedades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PropiedadDTO'
+
+  /api/config/property/type/{type}/{filterName}:
+    get:
+      operationId: getTypeProperty
+      tags: [config-forms]
+      summary: Valores definidos por tipo y filtro
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filterName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Valores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+
+  /api/config/property/{key}:
+    get:
+      operationId: getPropertyByKey
+      tags: [config-forms]
+      summary: Propiedad por key
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Propiedad
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropiedadDTO'
+
+  /api/config/property/:
     post:
-      tags: [webservice]
-      summary: Copiar definición de web service
-      security: [bearerAuth]
+      operationId: createProperty
+      tags: [config-forms]
+      summary: Crear propiedad
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/PropiedadDTO'
       responses:
         '200':
-          description: Copiado
+          description: Propiedad creada
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                $ref: '#/components/schemas/PropiedadDTO'
 
-  /template/designer/copy:
+  /api/config/configuration/export:
+    get:
+      operationId: exportConfiguration
+      tags: [config-forms]
+      summary: Exportar configuración completa
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      responses:
+        '200':
+          description: Configuración exportada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                description: FileVO
+
+  /api/config/configuration/module:
     post:
-      tags: [process-designer]
-      summary: Copiar proceso
-      security: [bearerAuth]
+      operationId: exportConfigurationModule
+      tags: [config-forms]
+      summary: Exportar configuración de módulos específicos
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
       requestBody:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              type: object
+              additionalProperties: true
+              description: ExportListRequest
       responses:
         '200':
-          description: Copiado
+          description: Configuración exportada
           content:
             application/json:
-              schema: { type: object }
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/config/configuration/import:
+    post:
+      operationId: importConfiguration
+      tags: [config-forms]
+      summary: Importar configuración
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: FileVO
+      responses:
+        '200':
+          description: Importación procesada
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/config/configuration/compare:
+    post:
+      operationId: compareConfiguration
+      tags: [config-forms]
+      summary: Comparar configuración
+      security:
+        - bearerAuth: []
+        - tenantHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: FileVO
+      responses:
+        '200':
+          description: Resultado de comparación
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
